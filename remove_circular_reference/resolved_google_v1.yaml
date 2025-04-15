@@ -1,0 +1,1977 @@
+openapi: 3.0.3
+info:
+  title: Generative Language API
+  description: The Gemini API allows developers to build generative AI applications
+    using Gemini models. Gemini is our most capable model, built from the ground up
+    to be multimodal. It can generalize and seamlessly understand, operate across,
+    and combine different types of information including language, images, audio,
+    video, and code. You can use the Gemini API for use cases like reasoning across
+    text and images, content generation, dialogue agents, summarization and classification
+    systems, and more.
+  x-google-revision: '20250311'
+  version: v1beta
+servers:
+- description: Global Endpoint
+  url: https://generativelanguage.googleapis.com
+externalDocs:
+  url: https://developers.generativeai.google/api
+  description: Find more info here.
+paths:
+  /v1beta/models:
+    get:
+      tags:
+      - generativelanguage
+      operationId: ListModels
+      description: 'Lists the [`Model`s](https://ai.google.dev/gemini-api/docs/models/gemini)
+
+        available through the Gemini API.'
+      parameters:
+      - name: pageSize
+        in: query
+        schema:
+          format: int32
+          type: integer
+        description: 'The maximum number of `Models` to return (per page).
+
+
+          If unspecified, 50 models will be returned per page.
+
+          This method returns at most 1000 models per page, even if you pass a larger
+
+          page_size.'
+      - name: pageToken
+        schema:
+          type: string
+        description: 'A page token, received from a previous `ListModels` call.
+
+
+          Provide the `page_token` returned by one request as an argument to the next
+
+          request to retrieve the next page.
+
+
+          When paginating, all other parameters provided to `ListModels` must match
+
+          the call that provided the page token.'
+        in: query
+      security: []
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListModelsResponse'
+          description: Successful operation
+  /v1beta/models/{model}:generateContent:
+    post:
+      requestBody:
+        description: The request body.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateContentRequest'
+      operationId: GenerateContent
+      tags:
+      - generativelanguage
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateContentResponse'
+          description: Successful operation
+      parameters:
+      - required: true
+        name: model
+        description: Resource ID segment making up resource `name`. It identifies
+          the resource within its parent collection as described in https://google.aip.dev/122.
+        in: path
+        schema:
+          type: string
+      description: 'Generates a model response given an input `GenerateContentRequest`.
+
+        Refer to the [text generation
+
+        guide](https://ai.google.dev/gemini-api/docs/text-generation) for detailed
+
+        usage information. Input capabilities differ between models, including
+
+        tuned models. Refer to the [model
+
+        guide](https://ai.google.dev/gemini-api/docs/models/gemini) and [tuning
+
+        guide](https://ai.google.dev/gemini-api/docs/model-tuning) for details.'
+      security: []
+  /v1beta/models/{model}:batchEmbedContents:
+    post:
+      requestBody:
+        description: The request body.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchEmbedContentsRequest'
+      tags:
+      - generativelanguage
+      security: []
+      description: 'Generates multiple embedding vectors from the input `Content`
+        which
+
+        consists of a batch of strings represented as `EmbedContentRequest`
+
+        objects.'
+      parameters:
+      - description: Resource ID segment making up resource `name`. It identifies
+          the resource within its parent collection as described in https://google.aip.dev/122.
+        in: path
+        schema:
+          type: string
+        required: true
+        name: model
+      operationId: BatchEmbedContents
+      responses:
+        default:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchEmbedContentsResponse'
+components:
+  schemas:
+    AttributionSourceId:
+      properties:
+        semanticRetrieverChunk:
+          description: Identifier for a `Chunk` fetched via Semantic Retriever.
+          allOf:
+          - $ref: '#/components/schemas/SemanticRetrieverChunk'
+        groundingPassage:
+          allOf:
+          - $ref: '#/components/schemas/GroundingPassageId'
+          description: Identifier for an inline passage.
+      description: Identifier for the source contributing to this attribution.
+      type: object
+    BatchEmbedContentsRequest:
+      description: Batch request to get embeddings from the model for a list of prompts.
+      required:
+      - requests
+      properties:
+        requests:
+          items:
+            $ref: '#/components/schemas/EmbedContentRequest'
+          description: 'Required. Embed requests for the batch. The model in each
+            of these requests must
+
+            match the model specified `BatchEmbedContentsRequest.model`.'
+          type: array
+      type: object
+    BatchEmbedContentsResponse:
+      type: object
+      properties:
+        embeddings:
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ContentEmbedding'
+          type: array
+          description: 'Output only. The embeddings for each request, in the same
+            order as provided in the batch
+
+            request.'
+      description: The response to a `BatchEmbedContentsRequest`.
+    Blob:
+      description: 'Raw media bytes.
+
+
+        Text should not be sent as raw bytes, use the ''text'' field.'
+      properties:
+        mimeType:
+          type: string
+          description: "The IANA standard MIME type of the source data.\nExamples:\n\
+            \  - image/png\n  - image/jpeg\nIf an unsupported MIME type is provided,\
+            \ an error will be returned. For a\ncomplete list of supported types,\
+            \ see [Supported file\nformats](https://ai.google.dev/gemini-api/docs/prompting_with_media#supported_file_formats)."
+        data:
+          type: string
+          format: byte
+          description: Raw bytes for media formats.
+      type: object
+    Candidate:
+      type: object
+      description: A response candidate generated from the model.
+      properties:
+        groundingMetadata:
+          allOf:
+          - $ref: '#/components/schemas/GroundingMetadata'
+          description: 'Output only. Grounding metadata for the candidate.
+
+
+            This field is populated for `GenerateContent` calls.'
+          readOnly: true
+        tokenCount:
+          readOnly: true
+          format: int32
+          description: Output only. Token count for this candidate.
+          type: integer
+        safetyRatings:
+          items:
+            $ref: '#/components/schemas/SafetyRating'
+          description: 'List of ratings for the safety of a response candidate.
+
+
+            There is at most one rating per category.'
+          type: array
+        index:
+          type: integer
+          readOnly: true
+          format: int32
+          description: Output only. Index of the candidate in the list of response
+            candidates.
+        finishReason:
+          x-google-enum-descriptions:
+          - Default value. This value is unused.
+          - Natural stop point of the model or provided stop sequence.
+          - The maximum number of tokens as specified in the request was reached.
+          - The response candidate content was flagged for safety reasons.
+          - The response candidate content was flagged for recitation reasons.
+          - 'The response candidate content was flagged for using an unsupported
+
+            language.'
+          - Unknown reason.
+          - Token generation stopped because the content contains forbidden terms.
+          - Token generation stopped for potentially containing prohibited content.
+          - 'Token generation stopped because the content potentially contains
+
+            Sensitive Personally Identifiable Information (SPII).'
+          - The function call generated by the model is invalid.
+          - 'Token generation stopped because generated images contain safety
+
+            violations.'
+          readOnly: true
+          enum:
+          - FINISH_REASON_UNSPECIFIED
+          - STOP
+          - MAX_TOKENS
+          - SAFETY
+          - RECITATION
+          - LANGUAGE
+          - OTHER
+          - BLOCKLIST
+          - PROHIBITED_CONTENT
+          - SPII
+          - MALFORMED_FUNCTION_CALL
+          - IMAGE_SAFETY
+          description: 'Optional. Output only. The reason why the model stopped generating
+            tokens.
+
+
+            If empty, the model has not stopped generating tokens.'
+          type: string
+        avgLogprobs:
+          description: Output only. Average log probability score of the candidate.
+          readOnly: true
+          type: number
+          format: double
+        content:
+          description: Output only. Generated content returned from the model.
+          allOf:
+          - $ref: '#/components/schemas/Content'
+          readOnly: true
+        logprobsResult:
+          description: Output only. Log-likelihood scores for the response tokens
+            and top tokens
+          allOf:
+          - $ref: '#/components/schemas/LogprobsResult'
+          readOnly: true
+        citationMetadata:
+          readOnly: true
+          description: 'Output only. Citation information for model-generated candidate.
+
+
+            This field may be populated with recitation information for any text
+
+            included in the `content`. These are passages that are "recited" from
+
+            copyrighted material in the foundational LLM''s training data.'
+          allOf:
+          - $ref: '#/components/schemas/CitationMetadata'
+        groundingAttributions:
+          type: array
+          description: 'Output only. Attribution information for sources that contributed
+            to a grounded answer.
+
+
+            This field is populated for `GenerateAnswer` calls.'
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/GroundingAttribution'
+    CitationMetadata:
+      description: A collection of source attributions for a piece of content.
+      properties:
+        citationSources:
+          type: array
+          items:
+            $ref: '#/components/schemas/CitationSource'
+          description: Citations to sources for a specific response.
+      type: object
+    CitationSource:
+      description: A citation to a source for a portion of a specific response.
+      type: object
+      properties:
+        uri:
+          description: Optional. URI that is attributed as a source for a portion
+            of the text.
+          type: string
+        license:
+          type: string
+          description: 'Optional. License for the GitHub project that is attributed
+            as a source for segment.
+
+
+            License info is required for code citations.'
+        endIndex:
+          format: int32
+          type: integer
+          description: Optional. End of the attributed segment, exclusive.
+        startIndex:
+          format: int32
+          description: 'Optional. Start of segment of the response that is attributed
+            to this source.
+
+
+            Index indicates the start of the segment, measured in bytes.'
+          type: integer
+    CodeExecution:
+      type: object
+      description: 'Tool that executes code generated by the model, and automatically
+        returns
+
+        the result to the model.
+
+
+        See also `ExecutableCode` and `CodeExecutionResult` which are only generated
+
+        when using this tool.'
+    CodeExecutionResult:
+      description: 'Result of executing the `ExecutableCode`.
+
+
+        Only generated when using the `CodeExecution`, and always follows a `part`
+
+        containing the `ExecutableCode`.'
+      type: object
+      required:
+      - outcome
+      properties:
+        output:
+          type: string
+          description: 'Optional. Contains stdout when code execution is successful,
+            stderr or other
+
+            description otherwise.'
+        outcome:
+          description: Required. Outcome of the code execution.
+          x-google-enum-descriptions:
+          - Unspecified status. This value should not be used.
+          - Code execution completed successfully.
+          - 'Code execution finished but with a failure. `stderr` should contain the
+
+            reason.'
+          - 'Code execution ran for too long, and was cancelled. There may or may
+            not
+
+            be a partial output present.'
+          enum:
+          - OUTCOME_UNSPECIFIED
+          - OUTCOME_OK
+          - OUTCOME_FAILED
+          - OUTCOME_DEADLINE_EXCEEDED
+          type: string
+    Content:
+      description: 'The base structured datatype containing multi-part content of
+        a message.
+
+
+        A `Content` includes a `role` field designating the producer of the `Content`
+
+        and a `parts` field containing multi-part data that contains the content of
+
+        the message turn.'
+      properties:
+        parts:
+          description: 'Ordered `Parts` that constitute a single message. Parts may
+            have different
+
+            MIME types.'
+          items:
+            $ref: '#/components/schemas/Part'
+          type: array
+        role:
+          description: 'Optional. The producer of the content. Must be either ''user''
+            or ''model''.
+
+
+            Useful to set for multi-turn conversations, otherwise can be left blank
+
+            or unset.'
+          type: string
+      type: object
+    ContentEmbedding:
+      type: object
+      properties:
+        values:
+          items:
+            type: number
+            format: float
+          description: The embedding values.
+          type: array
+      description: A list of floats representing an embedding.
+    DynamicRetrievalConfig:
+      description: Describes the options to customize dynamic retrieval.
+      properties:
+        dynamicThreshold:
+          description: 'The threshold to be used in dynamic retrieval.
+
+            If not set, a system default value is used.'
+          type: number
+          format: float
+        mode:
+          x-google-enum-descriptions:
+          - Always trigger retrieval.
+          - Run retrieval only when system decides it is necessary.
+          type: string
+          enum:
+          - MODE_UNSPECIFIED
+          - MODE_DYNAMIC
+          description: The mode of the predictor to be used in dynamic retrieval.
+      type: object
+    EmbedContentRequest:
+      type: object
+      properties:
+        title:
+          description: 'Optional. An optional title for the text. Only applicable
+            when TaskType is
+
+            `RETRIEVAL_DOCUMENT`.
+
+
+            Note: Specifying a `title` for `RETRIEVAL_DOCUMENT` provides better quality
+
+            embeddings for retrieval.'
+          type: string
+        model:
+          type: string
+          description: 'Required. The model''s resource name. This serves as an ID
+            for the Model to use.
+
+
+            This name should match a model name returned by the `ListModels` method.
+
+
+            Format: `models/{model}`'
+        taskType:
+          description: 'Optional. Optional task type for which the embeddings will
+            be used. Not supported on
+
+            earlier models (`models/embedding-001`).'
+          allOf:
+          - $ref: '#/components/schemas/TaskType'
+        content:
+          description: Required. The content to embed. Only the `parts.text` fields
+            will be counted.
+          allOf:
+          - $ref: '#/components/schemas/Content'
+        outputDimensionality:
+          format: int32
+          type: integer
+          description: 'Optional. Optional reduced dimension for the output embedding.
+            If set, excessive
+
+            values in the output embedding are truncated from the end. Supported by
+
+            newer models since 2024 only. You cannot set this value if using the
+
+            earlier model (`models/embedding-001`).'
+      required:
+      - model
+      - content
+      description: Request containing the `Content` for the model to embed.
+    ExecutableCode:
+      description: 'Code generated by the model that is meant to be executed, and
+        the result
+
+        returned to the model.
+
+
+        Only generated when using the `CodeExecution` tool, in which the code will
+
+        be automatically executed, and a corresponding `CodeExecutionResult` will
+
+        also be generated.'
+      required:
+      - language
+      - code
+      properties:
+        language:
+          x-google-enum-descriptions:
+          - Unspecified language. This value should not be used.
+          - Python >= 3.10, with numpy and simpy available.
+          description: Required. Programming language of the `code`.
+          type: string
+          enum:
+          - LANGUAGE_UNSPECIFIED
+          - PYTHON
+        code:
+          description: Required. The code to be executed.
+          type: string
+      type: object
+    FileData:
+      properties:
+        fileUri:
+          description: Required. URI.
+          type: string
+        mimeType:
+          description: Optional. The IANA standard MIME type of the source data.
+          type: string
+      required:
+      - fileUri
+      type: object
+      description: URI based data.
+    FunctionCall:
+      type: object
+      required:
+      - name
+      description: 'A predicted `FunctionCall` returned from the model that contains
+
+        a string representing the `FunctionDeclaration.name` with the
+
+        arguments and their values.'
+      properties:
+        name:
+          description: 'Required. The name of the function to call.
+
+            Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum
+
+            length of 63.'
+          type: string
+        args:
+          additionalProperties:
+            description: Properties of the object.
+          description: Optional. The function parameters and values in JSON object
+            format.
+          type: object
+        id:
+          description: 'Optional. The unique id of the function call. If populated,
+            the client to execute the
+
+            `function_call` and return the response with the matching `id`.'
+          type: string
+    FunctionCallingConfig:
+      description: Configuration for specifying function calling behavior.
+      properties:
+        mode:
+          description: 'Optional. Specifies the mode in which function calling should
+            execute. If
+
+            unspecified, the default value will be set to AUTO.'
+          type: string
+          x-google-enum-descriptions:
+          - Unspecified function calling mode. This value should not be used.
+          - 'Default model behavior, model decides to predict either a function call
+
+            or a natural language response.'
+          - 'Model is constrained to always predicting a function call only.
+
+            If "allowed_function_names" are set, the predicted function call will
+            be
+
+            limited to any one of "allowed_function_names", else the predicted
+
+            function call will be any one of the provided "function_declarations".'
+          - 'Model will not predict any function call. Model behavior is same as when
+
+            not passing any function declarations.'
+          enum:
+          - MODE_UNSPECIFIED
+          - AUTO
+          - ANY
+          - NONE
+        allowedFunctionNames:
+          description: 'Optional. A set of function names that, when provided, limits
+            the functions the model
+
+            will call.
+
+
+            This should only be set when the Mode is ANY. Function names
+
+            should match [FunctionDeclaration.name]. With mode set to ANY, model will
+
+            predict a function call from the set of function names provided.'
+          type: array
+          items:
+            type: string
+      type: object
+    FunctionDeclaration:
+      description: 'Structured representation of a function declaration as defined
+        by the
+
+        [OpenAPI 3.03 specification](https://spec.openapis.org/oas/v3.0.3). Included
+
+        in this declaration are the function name and parameters. This
+
+        FunctionDeclaration is a representation of a block of code that can be used
+
+        as a `Tool` by the model and executed by the client.'
+      required:
+      - name
+      - description
+      properties:
+        response:
+          allOf:
+          - $ref: '#/components/schemas/Schema'
+          description: 'Optional. Describes the output from this function in JSON
+            Schema format. Reflects the
+
+            Open API 3.03 Response Object. The Schema defines the type used for the
+
+            response value of the function.'
+        name:
+          type: string
+          description: 'Required. The name of the function.
+
+            Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum
+
+            length of 63.'
+        parameters:
+          description: 'Optional. Describes the parameters to this function. Reflects
+            the Open API 3.03
+
+            Parameter Object string Key: the name of the parameter. Parameter names
+            are
+
+            case sensitive. Schema Value: the Schema defining the type used for the
+
+            parameter.'
+          allOf:
+          - $ref: '#/components/schemas/Schema'
+        description:
+          type: string
+          description: Required. A brief description of the function.
+      type: object
+    FunctionResponse:
+      type: object
+      description: 'The result output from a `FunctionCall` that contains a string
+
+        representing the `FunctionDeclaration.name` and a structured JSON
+
+        object containing any output from the function is used as context to
+
+        the model. This should contain the result of a`FunctionCall` made
+
+        based on model prediction.'
+      properties:
+        name:
+          description: 'Required. The name of the function to call.
+
+            Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum
+
+            length of 63.'
+          type: string
+        response:
+          description: Required. The function response in JSON object format.
+          type: object
+          additionalProperties:
+            description: Properties of the object.
+        id:
+          type: string
+          description: 'Optional. The id of the function call this response is for.
+            Populated by the client
+
+            to match the corresponding function call `id`.'
+      required:
+      - name
+      - response
+    GenerateContentRequest:
+      required:
+      - model
+      - contents
+      type: object
+      properties:
+        tools:
+          description: 'Optional. A list of `Tools` the `Model` may use to generate
+            the next response.
+
+
+            A `Tool` is a piece of code that enables the system to interact with
+
+            external systems to perform an action, or set of actions, outside of
+
+            knowledge and scope of the `Model`. Supported `Tool`s are `Function` and
+
+            `code_execution`. Refer to the [Function
+
+            calling](https://ai.google.dev/gemini-api/docs/function-calling) and the
+
+            [Code execution](https://ai.google.dev/gemini-api/docs/code-execution)
+
+            guides to learn more.'
+          items:
+            $ref: '#/components/schemas/Tool'
+          type: array
+        systemInstruction:
+          allOf:
+          - $ref: '#/components/schemas/Content'
+          description: 'Optional. Developer set [system
+
+            instruction(s)](https://ai.google.dev/gemini-api/docs/system-instructions).
+
+            Currently, text only.'
+        generationConfig:
+          allOf:
+          - $ref: '#/components/schemas/GenerationConfig'
+          description: Optional. Configuration options for model generation and outputs.
+        toolConfig:
+          description: 'Optional. Tool configuration for any `Tool` specified in the
+            request. Refer to the
+
+            [Function calling
+
+            guide](https://ai.google.dev/gemini-api/docs/function-calling#function_calling_mode)
+
+            for a usage example.'
+          allOf:
+          - $ref: '#/components/schemas/ToolConfig'
+        cachedContent:
+          description: 'Optional. The name of the content
+
+            [cached](https://ai.google.dev/gemini-api/docs/caching) to use as context
+
+            to serve the prediction. Format: `cachedContents/{cachedContent}`'
+          type: string
+        safetySettings:
+          items:
+            $ref: '#/components/schemas/SafetySetting'
+          type: array
+          description: 'Optional. A list of unique `SafetySetting` instances for blocking
+            unsafe content.
+
+
+            This will be enforced on the `GenerateContentRequest.contents` and
+
+            `GenerateContentResponse.candidates`. There should not be more than one
+
+            setting for each `SafetyCategory` type. The API will block any contents
+            and
+
+            responses that fail to meet the thresholds set by these settings. This
+            list
+
+            overrides the default settings for each `SafetyCategory` specified in
+            the
+
+            safety_settings. If there is no `SafetySetting` for a given
+
+            `SafetyCategory` provided in the list, the API will use the default safety
+
+            setting for that category. Harm categories HARM_CATEGORY_HATE_SPEECH,
+
+            HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT,
+
+            HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_CIVIC_INTEGRITY are supported.
+
+            Refer to the [guide](https://ai.google.dev/gemini-api/docs/safety-settings)
+
+            for detailed information on available safety settings. Also refer to the
+
+            [Safety guidance](https://ai.google.dev/gemini-api/docs/safety-guidance)
+            to
+
+            learn how to incorporate safety considerations in your AI applications.'
+        model:
+          type: string
+          description: 'Required. The name of the `Model` to use for generating the
+            completion.
+
+
+            Format: `models/{model}`.'
+        contents:
+          type: array
+          description: 'Required. The content of the current conversation with the
+            model.
+
+
+            For single-turn queries, this is a single instance. For multi-turn queries
+
+            like [chat](https://ai.google.dev/gemini-api/docs/text-generation#chat),
+
+            this is a repeated field that contains the conversation history and the
+
+            latest request.'
+          items:
+            $ref: '#/components/schemas/Content'
+      description: Request to generate a completion from the model.
+    GenerateContentResponse:
+      type: object
+      description: "Response from the model supporting multiple candidate responses.\n\
+        \nSafety ratings and content filtering are reported for both\nprompt in `GenerateContentResponse.prompt_feedback`\
+        \ and for each candidate\nin `finish_reason` and in `safety_ratings`. The\
+        \ API:\n - Returns either all requested candidates or none of them\n - Returns\
+        \ no candidates at all only if there was something wrong with the\n   prompt\
+        \ (check `prompt_feedback`)\n - Reports feedback on each candidate in `finish_reason`\
+        \ and\n   `safety_ratings`."
+      properties:
+        usageMetadata:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/UsageMetadata'
+          description: Output only. Metadata on the generation requests' token usage.
+        candidates:
+          description: Candidate responses from the model.
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        promptFeedback:
+          description: Returns the prompt's feedback related to the content filters.
+          allOf:
+          - $ref: '#/components/schemas/PromptFeedback'
+        modelVersion:
+          type: string
+          description: Output only. The model version used to generate the response.
+          readOnly: true
+    GenerationConfig:
+      properties:
+        presencePenalty:
+          format: float
+          type: number
+          description: 'Optional. Presence penalty applied to the next token''s logprobs
+            if the token has
+
+            already been seen in the response.
+
+
+            This penalty is binary on/off and not dependant on the number of times
+            the
+
+            token is used (after the first). Use
+
+            frequency_penalty
+
+            for a penalty that increases with each use.
+
+
+            A positive penalty will discourage the use of tokens that have already
+
+            been used in the response, increasing the vocabulary.
+
+
+            A negative penalty will encourage the use of tokens that have already
+            been
+
+            used in the response, decreasing the vocabulary.'
+        speechConfig:
+          description: Optional. The speech generation config.
+          allOf:
+          - $ref: '#/components/schemas/SpeechConfig'
+        frequencyPenalty:
+          description: 'Optional. Frequency penalty applied to the next token''s logprobs,
+            multiplied by the
+
+            number of times each token has been seen in the respponse so far.
+
+
+            A positive penalty will discourage the use of tokens that have already
+
+            been used, proportional to the number of times the token has been used:
+
+            The more a token is used, the more difficult it is for the model to use
+
+            that token again increasing the vocabulary of responses.
+
+
+            Caution: A _negative_ penalty will encourage the model to reuse tokens
+
+            proportional to the number of times the token has been used. Small
+
+            negative values will reduce the vocabulary of a response. Larger negative
+
+            values will cause the model to start repeating a common token  until it
+
+            hits the max_output_tokens
+
+            limit.'
+          format: float
+          type: number
+        responseLogprobs:
+          description: Optional. If true, export the logprobs results in response.
+          type: boolean
+        seed:
+          description: 'Optional. Seed used in decoding. If not set, the request uses
+            a randomly generated
+
+            seed.'
+          format: int32
+          type: integer
+        responseModalities:
+          items:
+            enum:
+            - MODALITY_UNSPECIFIED
+            - TEXT
+            - IMAGE
+            - AUDIO
+            x-google-enum-descriptions:
+            - Default value.
+            - Indicates the model should return text.
+            - Indicates the model should return images.
+            - Indicates the model should return audio.
+            type: string
+          type: array
+          description: 'Optional. The requested modalities of the response. Represents
+            the set of modalities
+
+            that the model can return, and should be expected in the response. This
+            is
+
+            an exact match to the modalities of the response.
+
+
+            A model may have multiple combinations of supported modalities. If the
+
+            requested modalities do not match any of the supported combinations, an
+
+            error will be returned.
+
+
+            An empty list is equivalent to requesting only text.'
+        temperature:
+          type: number
+          format: float
+          description: 'Optional. Controls the randomness of the output.
+
+
+            Note: The default value varies by model, see the `Model.temperature`
+
+            attribute of the `Model` returned from the `getModel` function.
+
+
+            Values can range from [0.0, 2.0].'
+        logprobs:
+          description: 'Optional. Only valid if response_logprobs=True.
+
+            This sets the number of top logprobs to return at each decoding step in
+            the
+
+            Candidate.logprobs_result.'
+          format: int32
+          type: integer
+        responseSchema:
+          allOf:
+          - $ref: '#/components/schemas/Schema'
+          description: 'Optional. Output schema of the generated candidate text. Schemas
+            must be a
+
+            subset of the [OpenAPI schema](https://spec.openapis.org/oas/v3.0.3#schema)
+
+            and can be objects, primitives or arrays.
+
+
+            If set, a compatible `response_mime_type` must also be set.
+
+            Compatible MIME types:
+
+            `application/json`: Schema for JSON response.
+
+            Refer to the [JSON text generation
+
+            guide](https://ai.google.dev/gemini-api/docs/json-mode) for more details.'
+        maxOutputTokens:
+          description: 'Optional. The maximum number of tokens to include in a response
+            candidate.
+
+
+            Note: The default value varies by model, see the `Model.output_token_limit`
+
+            attribute of the `Model` returned from the `getModel` function.'
+          type: integer
+          format: int32
+        responseMimeType:
+          type: string
+          description: 'Optional. MIME type of the generated candidate text.
+
+            Supported MIME types are:
+
+            `text/plain`: (default) Text output.
+
+            `application/json`: JSON response in the response candidates.
+
+            `text/x.enum`: ENUM as a string response in the response candidates.
+
+            Refer to the
+
+            [docs](https://ai.google.dev/gemini-api/docs/prompting_with_media#plain_text_formats)
+
+            for a list of all supported text MIME types.'
+        topK:
+          type: integer
+          format: int32
+          description: 'Optional. The maximum number of tokens to consider when sampling.
+
+
+            Gemini models use Top-p (nucleus) sampling or a combination of Top-k and
+
+            nucleus sampling. Top-k sampling considers the set of `top_k` most probable
+
+            tokens. Models running with nucleus sampling don''t allow top_k setting.
+
+
+            Note: The default value varies by `Model` and is specified by
+
+            the`Model.top_p` attribute returned from the `getModel` function. An empty
+
+            `top_k` attribute indicates that the model doesn''t apply top-k sampling
+
+            and doesn''t allow setting `top_k` on requests.'
+        candidateCount:
+          type: integer
+          format: int32
+          description: 'Optional. Number of generated responses to return. If unset,
+            this will default
+
+            to 1. Please note that this doesn''t work for previous generation
+
+            models (Gemini 1.0 family)'
+        stopSequences:
+          type: array
+          items:
+            type: string
+          description: 'Optional. The set of character sequences (up to 5) that will
+            stop output generation.
+
+            If specified, the API will stop at the first appearance of a
+
+            `stop_sequence`. The stop sequence will not be included as part of the
+
+            response.'
+        topP:
+          format: float
+          type: number
+          description: 'Optional. The maximum cumulative probability of tokens to
+            consider when sampling.
+
+
+            The model uses combined Top-k and Top-p (nucleus) sampling.
+
+
+            Tokens are sorted based on their assigned probabilities so that only the
+
+            most likely tokens are considered. Top-k sampling directly limits the
+
+            maximum number of tokens to consider, while Nucleus sampling limits the
+
+            number of tokens based on the cumulative probability.
+
+
+            Note: The default value varies by `Model` and is specified by
+
+            the`Model.top_p` attribute returned from the `getModel` function. An empty
+
+            `top_k` attribute indicates that the model doesn''t apply top-k sampling
+
+            and doesn''t allow setting `top_k` on requests.'
+        mediaResolution:
+          description: Optional. If specified, the media resolution specified will
+            be used.
+          type: string
+          x-google-enum-descriptions:
+          - Media resolution has not been set.
+          - Media resolution set to low (64 tokens).
+          - Media resolution set to medium (256 tokens).
+          - Media resolution set to high (zoomed reframing with 256 tokens).
+          enum:
+          - MEDIA_RESOLUTION_UNSPECIFIED
+          - MEDIA_RESOLUTION_LOW
+          - MEDIA_RESOLUTION_MEDIUM
+          - MEDIA_RESOLUTION_HIGH
+        enableEnhancedCivicAnswers:
+          description: Optional. Enables enhanced civic answers. It may not be available
+            for all models.
+          type: boolean
+      description: 'Configuration options for model generation and outputs. Not all
+        parameters
+
+        are configurable for every model.'
+      type: object
+    GoogleSearch:
+      description: 'GoogleSearch tool type.
+
+        Tool to support Google Search in Model. Powered by Google.'
+      type: object
+    GoogleSearchRetrieval:
+      description: Tool to retrieve public web data for grounding, powered by Google.
+      properties:
+        dynamicRetrievalConfig:
+          allOf:
+          - $ref: '#/components/schemas/DynamicRetrievalConfig'
+          description: Specifies the dynamic retrieval configuration for the given
+            source.
+      type: object
+    GroundingAttribution:
+      type: object
+      description: Attribution for a source that contributed to an answer.
+      properties:
+        content:
+          description: Grounding source content that makes up this attribution.
+          allOf:
+          - $ref: '#/components/schemas/Content'
+        sourceId:
+          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/AttributionSourceId'
+          description: Output only. Identifier for the source contributing to this
+            attribution.
+    GroundingChunk:
+      properties:
+        web:
+          description: Grounding chunk from the web.
+          allOf:
+          - $ref: '#/components/schemas/Web'
+      type: object
+      description: Grounding chunk.
+    GroundingMetadata:
+      type: object
+      properties:
+        groundingChunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroundingChunk'
+          description: List of supporting references retrieved from specified grounding
+            source.
+        groundingSupports:
+          items:
+            $ref: '#/components/schemas/GroundingSupport'
+          description: List of grounding support.
+          type: array
+        retrievalMetadata:
+          allOf:
+          - $ref: '#/components/schemas/RetrievalMetadata'
+          description: Metadata related to retrieval in the grounding flow.
+        webSearchQueries:
+          type: array
+          description: Web search queries for the following-up web search.
+          items:
+            type: string
+        searchEntryPoint:
+          description: Optional. Google search entry for the following-up web searches.
+          allOf:
+          - $ref: '#/components/schemas/SearchEntryPoint'
+      description: Metadata returned to client when grounding is enabled.
+    GroundingPassageId:
+      type: object
+      description: Identifier for a part within a `GroundingPassage`.
+      properties:
+        partIndex:
+          format: int32
+          readOnly: true
+          description: 'Output only. Index of the part within the `GenerateAnswerRequest`''s
+
+            `GroundingPassage.content`.'
+          type: integer
+        passageId:
+          description: 'Output only. ID of the passage matching the `GenerateAnswerRequest`''s
+
+            `GroundingPassage.id`.'
+          readOnly: true
+          type: string
+    GroundingSupport:
+      description: Grounding support.
+      properties:
+        groundingChunkIndices:
+          type: array
+          items:
+            type: integer
+            format: int32
+          description: 'A list of indices (into ''grounding_chunk'') specifying the
+
+            citations associated with the claim. For instance [1,3,4] means
+
+            that grounding_chunk[1], grounding_chunk[3],
+
+            grounding_chunk[4] are the retrieved content attributed to the claim.'
+        segment:
+          description: Segment of the content this support belongs to.
+          allOf:
+          - $ref: '#/components/schemas/Segment'
+        confidenceScores:
+          description: 'Confidence score of the support references. Ranges from 0
+            to 1. 1 is the
+
+            most confident. This list must have the same size as the
+
+            grounding_chunk_indices.'
+          items:
+            format: float
+            type: number
+          type: array
+      type: object
+    HarmCategory:
+      x-google-enum-descriptions:
+      - Category is unspecified.
+      - '**PaLM** - Negative or harmful comments targeting identity and/or protected
+
+        attribute.'
+      - '**PaLM** - Content that is rude, disrespectful, or profane.'
+      - '**PaLM** - Describes scenarios depicting violence against an individual or
+
+        group, or general descriptions of gore.'
+      - '**PaLM** - Contains references to sexual acts or other lewd content.'
+      - '**PaLM** - Promotes unchecked medical advice.'
+      - '**PaLM** - Dangerous content that promotes, facilitates, or encourages
+
+        harmful acts.'
+      - '**Gemini** - Harassment content.'
+      - '**Gemini** - Hate speech and content.'
+      - '**Gemini** - Sexually explicit content.'
+      - '**Gemini** - Dangerous content.'
+      - '**Gemini** - Content that may be used to harm civic integrity.'
+      type: string
+      enum:
+      - HARM_CATEGORY_UNSPECIFIED
+      - HARM_CATEGORY_DEROGATORY
+      - HARM_CATEGORY_TOXICITY
+      - HARM_CATEGORY_VIOLENCE
+      - HARM_CATEGORY_SEXUAL
+      - HARM_CATEGORY_MEDICAL
+      - HARM_CATEGORY_DANGEROUS
+      - HARM_CATEGORY_HARASSMENT
+      - HARM_CATEGORY_HATE_SPEECH
+      - HARM_CATEGORY_SEXUALLY_EXPLICIT
+      - HARM_CATEGORY_DANGEROUS_CONTENT
+      - HARM_CATEGORY_CIVIC_INTEGRITY
+    ListModelsResponse:
+      properties:
+        nextPageToken:
+          type: string
+          description: 'A token, which can be sent as `page_token` to retrieve the
+            next page.
+
+
+            If this field is omitted, there are no more pages.'
+        models:
+          type: array
+          description: The returned Models.
+          items:
+            $ref: '#/components/schemas/Model'
+      type: object
+      description: Response from `ListModel` containing a paginated list of Models.
+    LogprobsResult:
+      type: object
+      description: Logprobs Result
+      properties:
+        topCandidates:
+          description: Length = total number of decoding steps.
+          type: array
+          items:
+            $ref: '#/components/schemas/TopCandidates'
+        chosenCandidates:
+          items:
+            $ref: '#/components/schemas/LogprobsResultCandidate'
+          description: 'Length = total number of decoding steps.
+
+            The chosen candidates may or may not be in top_candidates.'
+          type: array
+    LogprobsResultCandidate:
+      type: object
+      properties:
+        token:
+          description: "The candidate\u2019s token string value."
+          type: string
+        tokenId:
+          type: integer
+          description: "The candidate\u2019s token id value."
+          format: int32
+        logProbability:
+          description: The candidate's log probability.
+          type: number
+          format: float
+      description: Candidate for the logprobs token and score.
+    Modality:
+      type: string
+      enum:
+      - MODALITY_UNSPECIFIED
+      - TEXT
+      - IMAGE
+      - VIDEO
+      - AUDIO
+      - DOCUMENT
+      x-google-enum-descriptions:
+      - Unspecified modality.
+      - Plain text.
+      - Image.
+      - Video.
+      - Audio.
+      - Document, e.g. PDF.
+    ModalityTokenCount:
+      properties:
+        tokenCount:
+          type: integer
+          format: int32
+          description: Number of tokens.
+        modality:
+          allOf:
+          - $ref: '#/components/schemas/Modality'
+          description: The modality associated with this token count.
+      description: Represents token counting info for a single modality.
+      type: object
+    Model:
+      required:
+      - name
+      - baseModelId
+      - version
+      description: Information about a Generative Language Model.
+      properties:
+        version:
+          description: 'Required. The version number of the model.
+
+
+            This represents the major version (`1.0` or `1.5`)'
+          type: string
+        supportedGenerationMethods:
+          description: 'The model''s supported generation methods.
+
+
+            The corresponding API method names are defined as Pascal case
+
+            strings, such as `generateMessage` and `generateContent`.'
+          type: array
+          items:
+            type: string
+        topK:
+          format: int32
+          description: 'For Top-k sampling.
+
+
+            Top-k sampling considers the set of `top_k` most probable tokens.
+
+            This value specifies default to be used by the backend while making the
+
+            call to the model.
+
+            If empty, indicates the model doesn''t use top-k sampling, and `top_k`
+            isn''t
+
+            allowed as a generation parameter.'
+          type: integer
+        description:
+          description: A short description of the model.
+          type: string
+        name:
+          type: string
+          description: 'Required. The resource name of the `Model`. Refer to [Model
+
+            variants](https://ai.google.dev/gemini-api/docs/models/gemini#model-variations)
+
+            for all allowed values.
+
+
+            Format: `models/{model}` with a `{model}` naming convention of:
+
+
+            * "{base_model_id}-{version}"
+
+
+            Examples:
+
+
+            * `models/gemini-1.5-flash-001`'
+        inputTokenLimit:
+          type: integer
+          description: Maximum number of input tokens allowed for this model.
+          format: int32
+        temperature:
+          description: 'Controls the randomness of the output.
+
+
+            Values can range over `[0.0,max_temperature]`, inclusive. A higher value
+
+            will produce responses that are more varied, while a value closer to `0.0`
+
+            will typically result in less surprising responses from the model.
+
+            This value specifies default to be used by the backend while making the
+
+            call to the model.'
+          type: number
+          format: float
+        outputTokenLimit:
+          type: integer
+          format: int32
+          description: Maximum number of output tokens available for this model.
+        topP:
+          format: float
+          type: number
+          description: 'For [Nucleus
+
+            sampling](https://ai.google.dev/gemini-api/docs/prompting-strategies#top-p).
+
+
+            Nucleus sampling considers the smallest set of tokens whose probability
+
+            sum is at least `top_p`.
+
+            This value specifies default to be used by the backend while making the
+
+            call to the model.'
+        baseModelId:
+          description: 'Required. The name of the base model, pass this to the generation
+            request.
+
+
+            Examples:
+
+
+            * `gemini-1.5-flash`'
+          type: string
+        displayName:
+          description: 'The human-readable name of the model. E.g. "Gemini 1.5 Flash".
+
+
+            The name can be up to 128 characters long and can consist of any UTF-8
+
+            characters.'
+          type: string
+        maxTemperature:
+          description: The maximum temperature this model can use.
+          format: float
+          type: number
+      type: object
+    Part:
+      properties:
+        codeExecutionResult:
+          description: Result of executing the `ExecutableCode`.
+          allOf:
+          - $ref: '#/components/schemas/CodeExecutionResult'
+        functionCall:
+          description: 'A predicted `FunctionCall` returned from the model that contains
+
+            a string representing the `FunctionDeclaration.name` with the
+
+            arguments and their values.'
+          allOf:
+          - $ref: '#/components/schemas/FunctionCall'
+        executableCode:
+          allOf:
+          - $ref: '#/components/schemas/ExecutableCode'
+          description: Code generated by the model that is meant to be executed.
+        fileData:
+          description: URI based data.
+          allOf:
+          - $ref: '#/components/schemas/FileData'
+        text:
+          description: Inline text.
+          type: string
+        inlineData:
+          allOf:
+          - $ref: '#/components/schemas/Blob'
+          description: Inline media bytes.
+        functionResponse:
+          description: 'The result output of a `FunctionCall` that contains a string
+
+            representing the `FunctionDeclaration.name` and a structured JSON
+
+            object containing any output from the function is used as context to
+
+            the model.'
+          allOf:
+          - $ref: '#/components/schemas/FunctionResponse'
+      description: 'A datatype containing media that is part of a multi-part `Content`
+        message.
+
+
+        A `Part` consists of data which has an associated datatype. A `Part` can only
+
+        contain one of the accepted types in `Part.data`.
+
+
+        A `Part` must have a fixed IANA MIME type identifying the type and subtype
+
+        of the media if the `inline_data` field is filled with raw bytes.'
+      type: object
+    PrebuiltVoiceConfig:
+      type: object
+      properties:
+        voiceName:
+          description: The name of the preset voice to use.
+          type: string
+      description: The configuration for the prebuilt speaker to use.
+    PromptFeedback:
+      properties:
+        safetyRatings:
+          description: 'Ratings for safety of the prompt.
+
+            There is at most one rating per category.'
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyRating'
+        blockReason:
+          enum:
+          - BLOCK_REASON_UNSPECIFIED
+          - SAFETY
+          - OTHER
+          - BLOCKLIST
+          - PROHIBITED_CONTENT
+          - IMAGE_SAFETY
+          type: string
+          description: 'Optional. If set, the prompt was blocked and no candidates
+            are returned.
+
+            Rephrase the prompt.'
+          x-google-enum-descriptions:
+          - Default value. This value is unused.
+          - 'Prompt was blocked due to safety reasons. Inspect `safety_ratings`
+
+            to understand which safety category blocked it.'
+          - Prompt was blocked due to unknown reasons.
+          - 'Prompt was blocked due to the terms which are included from the
+
+            terminology blocklist.'
+          - Prompt was blocked due to prohibited content.
+          - Candidates blocked due to unsafe image generation content.
+      type: object
+      description: 'A set of the feedback metadata the prompt specified in
+
+        `GenerateContentRequest.content`.'
+    RetrievalMetadata:
+      properties:
+        googleSearchDynamicRetrievalScore:
+          format: float
+          description: 'Optional. Score indicating how likely information from google
+            search could help
+
+            answer the prompt. The score is in the range [0, 1], where 0 is the least
+
+            likely and 1 is the most likely. This score is only populated when
+
+            google search grounding and dynamic retrieval is enabled. It will be
+
+            compared to the threshold to determine whether to trigger google search.'
+          type: number
+      description: Metadata related to retrieval in the grounding flow.
+      type: object
+    SafetyRating:
+      type: object
+      required:
+      - category
+      - probability
+      properties:
+        category:
+          description: Required. The category for this rating.
+          allOf:
+          - $ref: '#/components/schemas/HarmCategory'
+        probability:
+          type: string
+          x-google-enum-descriptions:
+          - Probability is unspecified.
+          - Content has a negligible chance of being unsafe.
+          - Content has a low chance of being unsafe.
+          - Content has a medium chance of being unsafe.
+          - Content has a high chance of being unsafe.
+          enum:
+          - HARM_PROBABILITY_UNSPECIFIED
+          - NEGLIGIBLE
+          - LOW
+          - MEDIUM
+          - HIGH
+          description: Required. The probability of harm for this content.
+        blocked:
+          type: boolean
+          description: Was this content blocked because of this rating?
+      description: 'Safety rating for a piece of content.
+
+
+        The safety rating contains the category of harm and the
+
+        harm probability level in that category for a piece of content.
+
+        Content is classified for safety across a number of
+
+        harm categories and the probability of the harm classification is included
+
+        here.'
+    SafetySetting:
+      description: 'Safety setting, affecting the safety-blocking behavior.
+
+
+        Passing a safety setting for a category changes the allowed probability that
+
+        content is blocked.'
+      required:
+      - category
+      - threshold
+      type: object
+      properties:
+        threshold:
+          type: string
+          enum:
+          - HARM_BLOCK_THRESHOLD_UNSPECIFIED
+          - BLOCK_LOW_AND_ABOVE
+          - BLOCK_MEDIUM_AND_ABOVE
+          - BLOCK_ONLY_HIGH
+          - BLOCK_NONE
+          - 'OFF'
+          x-google-enum-descriptions:
+          - Threshold is unspecified.
+          - Content with NEGLIGIBLE will be allowed.
+          - Content with NEGLIGIBLE and LOW will be allowed.
+          - Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed.
+          - All content will be allowed.
+          - Turn off the safety filter.
+          description: Required. Controls the probability threshold at which harm
+            is blocked.
+        category:
+          allOf:
+          - $ref: '#/components/schemas/HarmCategory'
+          description: Required. The category for this setting.
+    Schema:
+      required:
+      - type
+      properties:
+        type:
+          allOf:
+          - $ref: '#/components/schemas/Type'
+          description: Required. Data type.
+        items:
+          allOf:
+          - x-removed-circular-ref: '#/components/schemas/Schema'
+            type: object
+            description: Circular reference to Schema was removed
+          description: Optional. Schema of the elements of Type.ARRAY.
+        enum:
+          type: array
+          description: 'Optional. Possible values of the element of Type.STRING with
+            enum format.
+
+            For example we can define an Enum Direction as :
+
+            {type:STRING, format:enum, enum:["EAST", NORTH", "SOUTH", "WEST"]}'
+          items:
+            type: string
+        format:
+          description: "Optional. The format of the data. This is used only for primitive\
+            \ datatypes.\nSupported formats:\n for NUMBER type: float, double\n for\
+            \ INTEGER type: int32, int64\n for STRING type: enum, date-time"
+          type: string
+        description:
+          type: string
+          description: 'Optional. A brief description of the parameter. This could
+            contain examples of use.
+
+            Parameter description may be formatted as Markdown.'
+        propertyOrdering:
+          type: array
+          items:
+            type: string
+          description: 'Optional. The order of the properties.
+
+            Not a standard field in open api spec. Used to determine the order of
+            the
+
+            properties in the response.'
+        maxItems:
+          type: string
+          description: Optional. Maximum number of the elements for Type.ARRAY.
+          format: int64
+        nullable:
+          type: boolean
+          description: Optional. Indicates if the value may be null.
+        required:
+          items:
+            type: string
+          description: Optional. Required properties of Type.OBJECT.
+          type: array
+        properties:
+          description: Optional. Properties of Type.OBJECT.
+          additionalProperties:
+            x-removed-circular-ref: '#/components/schemas/Schema'
+            type: object
+            description: Circular reference to Schema was removed
+          type: object
+        minItems:
+          type: string
+          description: Optional. Minimum number of the elements for Type.ARRAY.
+          format: int64
+      type: object
+      description: 'The `Schema` object allows the definition of input and output
+        data types.
+
+        These types can be objects, but also primitives and arrays.
+
+        Represents a select subset of an [OpenAPI 3.0 schema
+
+        object](https://spec.openapis.org/oas/v3.0.3#schema).'
+    SearchEntryPoint:
+      description: Google search entry point.
+      properties:
+        renderedContent:
+          description: Optional. Web content snippet that can be embedded in a web
+            page or an app webview.
+          type: string
+        sdkBlob:
+          description: Optional. Base64 encoded JSON representing array of  tuple.
+          type: string
+          format: byte
+      type: object
+    Segment:
+      type: object
+      properties:
+        partIndex:
+          type: integer
+          format: int32
+          description: Output only. The index of a Part object within its parent Content
+            object.
+          readOnly: true
+        startIndex:
+          type: integer
+          description: 'Output only. Start index in the given Part, measured in bytes.
+            Offset from the start of
+
+            the Part, inclusive, starting at zero.'
+          format: int32
+          readOnly: true
+        text:
+          type: string
+          readOnly: true
+          description: Output only. The text corresponding to the segment from the
+            response.
+        endIndex:
+          type: integer
+          format: int32
+          readOnly: true
+          description: 'Output only. End index in the given Part, measured in bytes.
+            Offset from the start of
+
+            the Part, exclusive, starting at zero.'
+      description: Segment of the content.
+    SemanticRetrieverChunk:
+      description: 'Identifier for a `Chunk` retrieved via Semantic Retriever specified
+        in the
+
+        `GenerateAnswerRequest` using `SemanticRetrieverConfig`.'
+      properties:
+        source:
+          description: 'Output only. Name of the source matching the request''s
+
+            `SemanticRetrieverConfig.source`. Example: `corpora/123` or
+
+            `corpora/123/documents/abc`'
+          readOnly: true
+          type: string
+        chunk:
+          description: 'Output only. Name of the `Chunk` containing the attributed
+            text.
+
+            Example: `corpora/123/documents/abc/chunks/xyz`'
+          type: string
+          readOnly: true
+      type: object
+    SpeechConfig:
+      properties:
+        voiceConfig:
+          description: The configuration for the speaker to use.
+          allOf:
+          - $ref: '#/components/schemas/VoiceConfig'
+      description: The speech generation config.
+      type: object
+    TaskType:
+      type: string
+      enum:
+      - TASK_TYPE_UNSPECIFIED
+      - RETRIEVAL_QUERY
+      - RETRIEVAL_DOCUMENT
+      - SEMANTIC_SIMILARITY
+      - CLASSIFICATION
+      - CLUSTERING
+      - QUESTION_ANSWERING
+      - FACT_VERIFICATION
+      - CODE_RETRIEVAL_QUERY
+      x-google-enum-descriptions:
+      - Unset value, which will default to one of the other enum values.
+      - Specifies the given text is a query in a search/retrieval setting.
+      - Specifies the given text is a document from the corpus being searched.
+      - Specifies the given text will be used for STS.
+      - Specifies that the given text will be classified.
+      - Specifies that the embeddings will be used for clustering.
+      - Specifies that the given text will be used for question answering.
+      - Specifies that the given text will be used for fact verification.
+      - Specifies that the given text will be used for code retrieval.
+    Tool:
+      description: 'Tool details that the model may use to generate response.
+
+
+        A `Tool` is a piece of code that enables the system to interact with
+
+        external systems to perform an action, or set of actions, outside of
+
+        knowledge and scope of the model.'
+      properties:
+        googleSearch:
+          allOf:
+          - $ref: '#/components/schemas/GoogleSearch'
+          description: 'Optional. GoogleSearch tool type.
+
+            Tool to support Google Search in Model. Powered by Google.'
+        codeExecution:
+          description: Optional. Enables the model to execute code as part of generation.
+          allOf:
+          - $ref: '#/components/schemas/CodeExecution'
+        googleSearchRetrieval:
+          description: Optional. Retrieval tool that is powered by Google search.
+          allOf:
+          - $ref: '#/components/schemas/GoogleSearchRetrieval'
+        functionDeclarations:
+          description: 'Optional. A list of `FunctionDeclarations` available to the
+            model that can be used
+
+            for function calling.
+
+
+            The model or system does not execute the function. Instead the defined
+
+            function may be returned as a FunctionCall
+
+            with arguments to the client side for execution. The model may decide
+            to
+
+            call a subset of these functions by populating
+
+            FunctionCall in the response. The next
+
+            conversation turn may contain a
+
+            FunctionResponse
+
+            with the Content.role "function" generation context for the next model
+
+            turn.'
+          items:
+            $ref: '#/components/schemas/FunctionDeclaration'
+          type: array
+      type: object
+    ToolConfig:
+      type: object
+      description: 'The Tool configuration containing parameters for specifying `Tool`
+        use
+
+        in the request.'
+      properties:
+        functionCallingConfig:
+          allOf:
+          - $ref: '#/components/schemas/FunctionCallingConfig'
+          description: Optional. Function calling config.
+    TopCandidates:
+      type: object
+      properties:
+        candidates:
+          items:
+            $ref: '#/components/schemas/LogprobsResultCandidate'
+          description: Sorted by log probability in descending order.
+          type: array
+      description: Candidates with top log probabilities at each decoding step.
+    Type:
+      x-google-enum-descriptions:
+      - Not specified, should not be used.
+      - String type.
+      - Number type.
+      - Integer type.
+      - Boolean type.
+      - Array type.
+      - Object type.
+      enum:
+      - TYPE_UNSPECIFIED
+      - STRING
+      - NUMBER
+      - INTEGER
+      - BOOLEAN
+      - ARRAY
+      - OBJECT
+      type: string
+    UsageMetadata:
+      description: Metadata on the generation request's token usage.
+      properties:
+        candidatesTokenCount:
+          format: int32
+          type: integer
+          description: Total number of tokens across all the generated response candidates.
+        candidatesTokensDetails:
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+          type: array
+          description: Output only. List of modalities that were returned in the response.
+        totalTokenCount:
+          format: int32
+          type: integer
+          description: 'Total token count for the generation request (prompt + response
+
+            candidates).'
+        cachedContentTokenCount:
+          type: integer
+          description: Number of tokens in the cached part of the prompt (the cached
+            content)
+          format: int32
+        promptTokensDetails:
+          description: Output only. List of modalities that were processed in the
+            request input.
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        toolUsePromptTokenCount:
+          type: integer
+          description: Output only. Number of tokens present in tool-use prompt(s).
+          readOnly: true
+          format: int32
+        thoughtsTokenCount:
+          format: int32
+          type: integer
+          description: Output only. Number of tokens of thoughts for thinking models.
+          readOnly: true
+        toolUsePromptTokensDetails:
+          type: array
+          description: Output only. List of modalities that were processed for tool-use
+            request inputs.
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+          readOnly: true
+        promptTokenCount:
+          description: 'Number of tokens in the prompt. When `cached_content` is set,
+            this is
+
+            still the total effective prompt size meaning this includes the number
+            of
+
+            tokens in the cached content.'
+          type: integer
+          format: int32
+        cacheTokensDetails:
+          type: array
+          description: Output only. List of modalities of the cached content in the
+            request input.
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+      type: object
+    VoiceConfig:
+      type: object
+      description: The configuration for the voice to use.
+      properties:
+        prebuiltVoiceConfig:
+          description: The configuration for the prebuilt voice to use.
+          allOf:
+          - $ref: '#/components/schemas/PrebuiltVoiceConfig'
+    Web:
+      type: object
+      description: Chunk from the web.
+      properties:
+        title:
+          type: string
+          description: Title of the chunk.
+        uri:
+          type: string
+          description: URI reference of the chunk.

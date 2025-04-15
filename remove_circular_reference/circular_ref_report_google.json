@@ -1,0 +1,30 @@
+{
+  "detected_cycles": [
+    {
+      "cycle": "Schema -> Schema"
+    }
+  ],
+  "breaking_points": [
+    {
+      "cycle": "Schema -> Schema",
+      "broken_edge": "Schema -> Schema",
+      "reference_count": 2,
+      "locations": [
+        "properties/properties/additionalProperties",
+        "properties/items/allOf/0"
+      ]
+    }
+  ],
+  "removed_references": [
+    {
+      "source_schema": "Schema",
+      "target_schema": "Schema",
+      "path": "properties/properties/additionalProperties"
+    },
+    {
+      "source_schema": "Schema",
+      "target_schema": "Schema",
+      "path": "properties/items/allOf/0"
+    }
+  ]
+}

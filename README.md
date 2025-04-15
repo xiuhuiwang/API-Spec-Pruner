@@ -1,6 +1,7 @@
 # API-Spec-Pruner
 
 A tool to extract and create a streamlined API specification by selecting necessary paths from a full API spec.
+Only OpenAPI 3.x is supported. Please convert your Swagger 2.x to 3.0 before utilizing this tool.
 
 ## Features
 
