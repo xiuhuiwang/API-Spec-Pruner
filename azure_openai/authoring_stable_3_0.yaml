@@ -1,13 +1,222 @@
 openapi: 3.0.1
 info:
-  title: Azure OpenAI API version 2024-06-01
+  title: Azure OpenAI API version 2022-12-01
   description: APIs for fine-tuning and managing deployments of OpenAI models.
-  version: 2024-06-01
+  version: 2022-12-01
 servers:
 - url: /
 security:
 - api-key: []
 paths:
+  /deployments:
+    get:
+      tags:
+      - 'Deployments:'
+      summary: Gets the list of deployments owned by the Azure OpenAI resource.
+      operationId: Deployments_List
+      parameters:
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: 2022-12-01
+          x-ms-parameter-location: client
+        x-ms-client-default: 2022-12-01
+        x-ms-parameter-location: client
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentList'
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-ms-examples:
+        Getting all deployments owned by account.:
+          $ref: ./examples/get_deployments.json
+    post:
+      tags:
+      - 'Deployments:'
+      summary: Creates a new deployment for the Azure OpenAI resource according to
+        the given specification.
+      operationId: Deployments_Create
+      parameters:
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: 2022-12-01
+          x-ms-parameter-location: client
+        x-ms-client-default: 2022-12-01
+        x-ms-parameter-location: client
+      requestBody:
+        description: The specification of the deployment including the model to deploy
+          and the scale settings.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Deployment'
+        required: true
+      responses:
+        "201":
+          description: The deployment has been successfully created.
+          headers:
+            Location:
+              description: The location of the newly created item.
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deployment'
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-ms-examples:
+        Creating a deployment.:
+          $ref: ./examples/post_deployment.json
+      x-codegen-request-body-name: deployment
+  /deployments/{deployment-id}:
+    get:
+      tags:
+      - 'Deployments:'
+      summary: Gets details for a single deployment specified by the given deployment-id.
+      operationId: Deployments_Get
+      parameters:
+      - name: deployment-id
+        in: path
+        description: The identifier of the deployment.
+        required: true
+        schema:
+          type: string
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: 2022-12-01
+          x-ms-parameter-location: client
+        x-ms-client-default: 2022-12-01
+        x-ms-parameter-location: client
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deployment'
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-ms-examples:
+        Getting a specific deployment.:
+          $ref: ./examples/get_deployment.json
+    delete:
+      tags:
+      - 'Deployments:'
+      summary: Deletes the deployment specified by the given deployment-id.
+      operationId: Deployments_Delete
+      parameters:
+      - name: deployment-id
+        in: path
+        description: The identifier of the deployment.
+        required: true
+        schema:
+          type: string
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: 2022-12-01
+          x-ms-parameter-location: client
+        x-ms-client-default: 2022-12-01
+        x-ms-parameter-location: client
+      responses:
+        "204":
+          description: The deployment was successfully deleted.
+          content: {}
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-ms-examples:
+        Deleting a deployment.:
+          $ref: ./examples/delete_deployment.json
+    patch:
+      tags:
+      - 'Deployments:'
+      summary: Updates the mutable details of the deployment with the given deployment-id.
+      operationId: Deployments_Update
+      parameters:
+      - name: deployment-id
+        in: path
+        description: The identifier of the deployment.
+        required: true
+        schema:
+          type: string
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: 2022-12-01
+          x-ms-parameter-location: client
+        x-ms-client-default: 2022-12-01
+        x-ms-parameter-location: client
+      requestBody:
+        description: The updated values for the deployment.
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/DeploymentUpdate'
+        required: true
+      responses:
+        "200":
+          description: The update process was successfully started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deployment'
+        "409":
+          description: The specified deployment does not exist or is in a non-terminal
+            state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          x-ms-error-response: true
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      x-ms-examples:
+        Updating an existing deployment with less capacity:
+          $ref: ./examples/patch_deployment_less_capacity.json
+      x-codegen-request-body-name: deployment
   /files:
     get:
       tags:
@@ -19,39 +228,15 @@ paths:
         \ metrics for the corresponding fine-tune job."
       operationId: Files_List
       parameters:
-      - name: purpose
-        in: query
-        description: Only return files with the given purpose.
-        schema:
-          type: string
-          enum:
-          - fine-tune
-          - fine-tune-results
-          x-ms-enum:
-            name: Purpose
-            modelAsString: true
-            values:
-            - value: fine-tune
-              description: This file contains training data for a fine tune job.
-            - value: fine-tune-results
-              description: This file contains the results of a fine tune job.
-        x-ms-enum:
-          name: Purpose
-          modelAsString: true
-          values:
-          - value: fine-tune
-            description: This file contains training data for a fine tune job.
-          - value: fine-tune-results
-            description: This file contains the results of a fine tune job.
       - name: api-version
         in: query
         description: The requested API version.
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -83,9 +268,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       requestBody:
         content:
@@ -160,9 +345,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -199,9 +384,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "204":
@@ -237,9 +422,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -279,9 +464,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       requestBody:
         description: "The definition of the file to create including its purpose,\
@@ -314,38 +499,26 @@ paths:
         Importing a file with a blob url as source.:
           $ref: ./examples/import_file.json
       x-codegen-request-body-name: fileImport
-  /fine_tuning/jobs:
+  /fine-tunes:
     get:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: "Gets a list of all fine-tune jobs owned by the Azure OpenAI resource.\r\
         \nThe details that are returned for each fine-tune job contain besides its\
         \ identifier\r\nthe base model, training and validation files, hyper parameters,\
         \ time stamps, status and events.\r\nEvents are created when the job status\
         \ changes, e.g. running or complete, and when results are uploaded."
-      operationId: FineTuning_List
+      operationId: FineTunes_List
       parameters:
-      - name: after
-        in: query
-        description: Identifier for the last event from the previous pagination request.
-        schema:
-          type: string
-      - name: limit
-        in: query
-        description: Number of events to retrieve. Defaults to 20.
-        schema:
-          type: integer
-          format: int32
-          default: 20
       - name: api-version
         in: query
         description: The requested API version.
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -353,7 +526,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FineTuningJobList'
+                $ref: '#/components/schemas/FineTuneList'
         default:
           description: An error occurred.
           content:
@@ -361,16 +534,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Getting all fine tuning jobs owned by this account.:
-          $ref: ./examples/get_finetuning_jobs.json
+        Getting all fine tune jobs owned by this account.:
+          $ref: ./examples/get_finetunes.json
     post:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: "Creates a job that fine-tunes a specified model from a given training\
         \ file.\r\nResponse includes details of the enqueued job including job status\
         \ and hyper parameters.\r\nThe name of the fine-tuned model is added to the\
         \ response once complete."
-      operationId: FineTuning_Create
+      operationId: FineTunes_Create
       parameters:
       - name: api-version
         in: query
@@ -378,21 +551,21 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       requestBody:
         description: "The specification of the fine-tuned model to create.\r\nRequired\
           \ parameters are the base model and the training file to use.\r\nOptionally\
           \ a validation file can be specified to compute validation metrics during\
-          \ training.\r\nHyper parameters will be set to default values or can be\
+          \ training.\r\nHyper parameters will be set to default values or can by\
           \ optionally specified.\r\nThese include batch size, learning rate multiplier,\
           \ number of epochs and others."
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FineTuningJobCreation'
+              $ref: '#/components/schemas/FineTuneCreation'
         required: true
       responses:
         "201":
@@ -406,7 +579,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FineTuningJob'
+                $ref: '#/components/schemas/FineTune'
         default:
           description: An error occurred.
           content:
@@ -414,20 +587,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Creating a fine tuning job.:
-          $ref: ./examples/post_finetuning_job.json
-      x-codegen-request-body-name: fineTuningJob
-  /fine_tuning/jobs/{fine-tuning-job-id}:
+        Creating a fine tune job.:
+          $ref: ./examples/post_finetune.json
+        Creating a fine tune job for classification.:
+          $ref: ./examples/post_classification_finetune.json
+      x-codegen-request-body-name: fineTune
+  /fine-tunes/{fine-tune-id}:
     get:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: "Gets details for a single fine-tune job specified by the given fine-tune-id.\r\
         \nThe details contain the base model, training and validation files, hyper\
         \ parameters, time stamps, status and events.\r\nEvents are created when the\
         \ job status changes, e.g. running or complete, and when results are uploaded."
-      operationId: FineTuning_Get
+      operationId: FineTunes_Get
       parameters:
-      - name: fine-tuning-job-id
+      - name: fine-tune-id
         in: path
         description: The identifier of the fine-tune job.
         required: true
@@ -439,9 +614,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -449,7 +624,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FineTuningJob'
+                $ref: '#/components/schemas/FineTune'
         default:
           description: An error occurred.
           content:
@@ -457,15 +632,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Getting a fine tuning job.:
-          $ref: ./examples/get_finetuning_job.json
+        Getting a fine tune job.:
+          $ref: ./examples/get_finetune.json
     delete:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: Deletes the fine-tune job specified by the given fine-tune-id.
-      operationId: FineTuning_Delete
+      operationId: FineTunes_Delete
       parameters:
-      - name: fine-tuning-job-id
+      - name: fine-tune-id
         in: path
         description: The identifier of the fine-tune job.
         required: true
@@ -477,9 +652,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "204":
@@ -492,44 +667,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Deleting a fine tuning job.:
-          $ref: ./examples/delete_finetuning_job.json
-  /fine_tuning/jobs/{fine-tuning-job-id}/events:
+        Deleting a fine tune job.:
+          $ref: ./examples/delete_finetune.json
+  /fine-tunes/{fine-tune-id}/events:
     get:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: "Gets the events for the fine-tune job specified by the given fine-tune-id.\r\
         \nEvents are created when the job status changes, e.g. running or complete,\
         \ and when results are uploaded."
-      operationId: FineTuning_GetEvents
+      operationId: FineTunes_GetEvents
       parameters:
-      - name: fine-tuning-job-id
+      - name: fine-tune-id
         in: path
         description: The identifier of the fine-tune job.
         required: true
         schema:
           type: string
-      - name: after
+      - name: stream
         in: query
-        description: Identifier for the last event from the previous pagination request.
+        description: "A flag indicating whether to stream events for the fine-tune\
+          \ job. If set to true,\r\n            events will be sent as data-only server-sent\
+          \ events as they become available. The stream will terminate with\r\n  \
+          \          a data: [DONE] message when the job is finished (succeeded, cancelled,\
+          \ or failed).\r\n            If set to false, only events generated so far\
+          \ will be returned.."
         schema:
-          type: string
-      - name: limit
-        in: query
-        description: Number of events to retrieve. Defaults to 20.
-        schema:
-          type: integer
-          format: int32
-          default: 20
+          type: boolean
       - name: api-version
         in: query
         description: The requested API version.
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -537,79 +710,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FineTuningJobEventList'
+                $ref: '#/components/schemas/EventList'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/EventList'
         default:
           description: An error occurred.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      x-ms-examples:
-        Getting events of a fine tuning job.:
-          $ref: ./examples/get_finetuning_job_events.json
-  /fine_tuning/jobs/{fine-tuning-job-id}/checkpoints:
-    get:
-      tags:
-      - 'Fine-tuning:'
-      summary: "Gets the checkpoints for the fine-tune job specified by the given\
-        \ fine-tune-id.\r\nCheckpoints are created at the end of successful epochs\
-        \ during training."
-      operationId: FineTuning_GetCheckpoints
-      parameters:
-      - name: fine-tuning-job-id
-        in: path
-        description: The identifier of the fine-tune job.
-        required: true
-        schema:
-          type: string
-      - name: after
-        in: query
-        description: Identifier for the last checkpoint ID from the previous pagination
-          request.
-        schema:
-          type: string
-      - name: limit
-        in: query
-        description: Number of checkpoints to retrieve. Defaults to 10.
-        schema:
-          type: integer
-          format: int32
-          default: 10
-      - name: api-version
-        in: query
-        description: The requested API version.
-        required: true
-        schema:
-          type: string
-          x-ms-client-default: 2024-06-01
-          x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
-        x-ms-parameter-location: client
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FineTuningJobCheckpointList'
-        default:
-          description: An error occurred.
-          content:
-            application/json:
+            text/event-stream:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Getting checkpoints of a fine tuning job.:
-          $ref: ./examples/get_finetuning_job_checkpoints.json
-  /fine_tuning/jobs/{fine-tuning-job-id}/cancel:
+        Getting events of a fine tune job.:
+          $ref: ./examples/get_finetune_events.json
+  /fine-tunes/{fine-tune-id}/cancel:
     post:
       tags:
-      - 'Fine-tuning:'
+      - 'Fine-tunes:'
       summary: Cancels the processing of the fine-tune job specified by the given
         fine-tune-id.
-      operationId: FineTuning_Cancel
+      operationId: FineTunes_Cancel
       parameters:
-      - name: fine-tuning-job-id
+      - name: fine-tune-id
         in: path
         description: The identifier of the fine-tune job.
         required: true
@@ -621,9 +746,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -631,7 +756,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FineTuningJob'
+                $ref: '#/components/schemas/FineTune'
         default:
           description: An error occurred.
           content:
@@ -639,8 +764,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       x-ms-examples:
-        Canceling a fine tuning job.:
-          $ref: ./examples/cancel_finetuning_job.json
+        Canceling a fine tune job.:
+          $ref: ./examples/cancel_finetune.json
   /models:
     get:
       tags:
@@ -656,9 +781,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -695,9 +820,9 @@ paths:
         required: true
         schema:
           type: string
-          x-ms-client-default: 2024-06-01
+          x-ms-client-default: 2022-12-01
           x-ms-parameter-location: client
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
       responses:
         "200":
@@ -722,11 +847,11 @@ components:
     Capabilities:
       title: Capabilities
       required:
-      - chat_completion
       - completion
       - embeddings
       - fine_tune
       - inference
+      - scale_types
       type: object
       properties:
         fine_tune:
@@ -738,13 +863,80 @@ components:
         completion:
           type: boolean
           description: A value indicating whether a model supports completion.
-        chat_completion:
-          type: boolean
-          description: A value indicating whether a model supports chat completion.
         embeddings:
           type: boolean
           description: A value indicating whether a model supports embeddings.
+        scale_types:
+          type: array
+          description: The supported scale types for deployments of this model.
+          items:
+            $ref: '#/components/schemas/ScaleType'
       description: The capabilities of a base or fine tune model.
+    Deployment:
+      title: Deployment
+      required:
+      - model
+      - scale_settings
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
+        created_at:
+          type: integer
+          description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
+          format: unixtime
+          readOnly: true
+        id:
+          type: string
+          description: The identity of this item.
+          readOnly: true
+        model:
+          minLength: 1
+          type: string
+          description: The OpenAI model identifier (model-id) to deploy. Can be a
+            base model or a fine tune.
+        owner:
+          type: string
+          description: The owner of this deployment. For Azure OpenAI only "organization-owner"
+            is supported.
+          readOnly: true
+        scale_settings:
+          $ref: '#/components/schemas/ScaleSettings'
+        error:
+          $ref: '#/components/schemas/Error'
+      description: Deployments manage the reserved quota for Azure OpenAI models and
+        make them available for inference requests.
+    DeploymentList:
+      title: DeploymentList
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        data:
+          type: array
+          description: The list of items.
+          items:
+            $ref: '#/components/schemas/Deployment'
+      description: Represents a list of deployments.
+    DeploymentUpdate:
+      title: DeploymentUpdate
+      type: object
+      properties:
+        model:
+          type: string
+          description: The new OpenAI model identifier (model-id) to be used for this
+            deployment. Can be a base model or a fine tune.
+        scale_settings:
+          $ref: '#/components/schemas/ScaleSettingsUpdate'
+      description: Defines changes to the deployment.
     Deprecation:
       title: Deprecation
       required:
@@ -805,9 +997,6 @@ components:
       - quotaExceeded
       - jsonlValidationFailed
       - fileImportFailed
-      - tooManyRequests
-      - unauthorized
-      - contentFilter
       x-ms-enum:
         name: ErrorCode
         modelAsString: true
@@ -836,12 +1025,6 @@ components:
           description: Validation of jsonl data failed.
         - value: fileImportFailed
           description: Import of file failed.
-        - value: tooManyRequests
-          description: Too many requests. Please retry later.
-        - value: unauthorized
-          description: The current user/api key is not authorized for the operation.
-        - value: contentFilter
-          description: Image generation failed as a result of our safety system.
     ErrorResponse:
       title: ErrorResponse
       required:
@@ -852,21 +1035,40 @@ components:
           $ref: '#/components/schemas/Error'
       description: "Error response as defined in the Microsoft REST guidelines\r\n\
         (https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses)."
-    EventType:
-      title: EventType
-      type: string
-      description: Defines the severity of a content filter result.
-      enum:
+    Event:
+      title: Event
+      required:
+      - created_at
+      - level
       - message
-      - metrics
-      x-ms-enum:
-        name: EventType
-        modelAsString: true
-        values:
-        - value: message
-          description: Event only contains human readable messages.
-        - value: metrics
-          description: Event contains metrics.
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        created_at:
+          type: integer
+          description: A timestamp when this event was created (in unix epochs).
+          format: unixtime
+        level:
+          $ref: '#/components/schemas/LogLevel'
+        message:
+          minLength: 1
+          type: string
+          description: "The message describing the event. This can be a change of\
+            \ state, e.g., enqueued, started, failed or completed, or other events\
+            \ like uploaded results."
+    EventList:
+      title: EventList
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        data:
+          type: array
+          description: The list of items.
+          items:
+            $ref: '#/components/schemas/Event'
+      description: Represents a list of events.
     File:
       title: File
       required:
@@ -876,17 +1078,23 @@ components:
       properties:
         object:
           $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
         created_at:
           type: integer
           description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
           format: unixtime
           readOnly: true
         id:
           type: string
           description: The identity of this item.
           readOnly: true
-        status:
-          $ref: '#/components/schemas/FileState'
         bytes:
           type: integer
           description: "The size of this file when available (can be null). File sizes\
@@ -900,11 +1108,10 @@ components:
           minLength: 1
           type: string
           description: The name of the file.
-        status_details:
-          type: string
-          description: The error message with details in case processing of this file
-            failed.
-          readOnly: true
+        statistics:
+          $ref: '#/components/schemas/FileStatistics'
+        error:
+          $ref: '#/components/schemas/Error'
       description: A file is a document usable for training and validation. It can
         also be a service generated document with result details.
     FileImport:
@@ -943,50 +1150,123 @@ components:
           items:
             $ref: '#/components/schemas/File'
       description: Represents a list of files.
-    FileState:
-      title: FileState
-      type: string
-      description: The state of a file.
-      enum:
-      - uploaded
-      - pending
-      - running
-      - processed
-      - error
-      - deleting
-      - deleted
-      x-ms-enum:
-        name: FileState
-        modelAsString: true
-        values:
-        - value: uploaded
-          description: The file has been uploaded but it's not yet processed. This
-            state is not returned by Azure OpenAI and exposed only for compatibility.
-            It can be categorized as an inactive state.
-        - value: pending
-          description: The operation was created and is not queued to be processed
-            in the future. It can be categorized as an inactive state.
-        - value: running
-          description: The operation has started to be processed. It can be categorized
-            as an active state.
-        - value: processed
-          description: The operation has successfully be processed and is ready for
-            consumption. It can be categorized as a terminal state.
-        - value: error
-          description: The operation has completed processing with a failure and cannot
-            be further consumed. It can be categorized as a terminal state.
-        - value: deleting
-          description: The entity is ni the process to be deleted. This state is not
-            returned by Azure OpenAI and exposed only for compatibility. It can be
-            categorized as an active state.
-        - value: deleted
-          description: The entity has been deleted but may still be referenced by
-            other entities predating the deletion. It can be categorized as a terminal
-            state.
-    FineTuningHyperParameters:
-      title: FineTuningHyperParameters
+    FileStatistics:
+      title: FileStatistics
       type: object
       properties:
+        tokens:
+          type: integer
+          description: The number of tokens used in prompts and completions for files
+            of kind "fine-tune" once validation of file content is complete.
+          format: int32
+        examples:
+          type: integer
+          description: The number of contained training examples in files of kind
+            "fine-tune" once validation of file content is complete.
+          format: int32
+      description: A file is a document usable for training and validation. It can
+        also be a service generated document with result details.
+    FineTune:
+      title: FineTune
+      required:
+      - model
+      - training_files
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
+        created_at:
+          type: integer
+          description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
+          format: unixtime
+          readOnly: true
+        id:
+          type: string
+          description: The identity of this item.
+          readOnly: true
+        model:
+          minLength: 1
+          type: string
+          description: The identifier (model-id) of the base model used for the fine-tune.
+        fine_tuned_model:
+          type: string
+          description: "The identifier (model-id) of the resulting fine tuned model.\
+            \ This property is only populated for successfully completed fine-tune\
+            \ runs.\r\nUse this identifier to create a deployment for inferencing."
+        training_files:
+          type: array
+          description: The file identities (file-id) that are used for training the
+            fine tuned model.
+          items:
+            $ref: '#/components/schemas/File'
+        validation_files:
+          type: array
+          description: The file identities (file-id) that are used to evaluate the
+            fine tuned model during training.
+          items:
+            $ref: '#/components/schemas/File'
+        result_files:
+          type: array
+          description: "The result file identities (file-id) containing training and\
+            \ evaluation metrics in csv format.\r\nThe file is only available for\
+            \ successfully completed fine-tune runs."
+          items:
+            $ref: '#/components/schemas/File'
+        events:
+          type: array
+          description: "The events that show the progress of the fine-tune run including\
+            \ queued, running and completed."
+          items:
+            $ref: '#/components/schemas/Event'
+        organisation_id:
+          type: string
+          description: The organisation id of this fine tune job. Unused on Azure
+            OpenAI; compatibility for OpenAI only.
+        user_id:
+          type: string
+          description: The user id of this fine tune job. Unused on Azure OpenAI;
+            compatibility for OpenAI only.
+        hyperparams:
+          $ref: '#/components/schemas/HyperParameters'
+        suffix:
+          type: string
+          description: The suffix used to identify the fine-tuned model.
+        error:
+          $ref: '#/components/schemas/Error'
+      description: Fine tuning is a job to tailor a model to specific training data.
+    FineTuneCreation:
+      title: FineTuneCreation
+      required:
+      - model
+      - training_file
+      type: object
+      properties:
+        model:
+          minLength: 1
+          type: string
+          description: The identifier (model-id) of the base model used for this fine-tune.
+        training_file:
+          minLength: 1
+          type: string
+          description: The file identity (file-id) that is used for training this
+            fine tuned model.
+        validation_file:
+          type: string
+          description: The file identity (file-id) that is used to evaluate the fine
+            tuned model during training.
+        suffix:
+          type: string
+          description: "The suffix used to identify the fine-tuned model. The suffix\
+            \ can contain up to 40 characters (a-z, A-Z, 0-9,- and _) that will be\
+            \ added to your fine-tuned model name."
         n_epochs:
           type: integer
           description: The number of epochs to train the model for. An epoch refers
@@ -1008,229 +1288,49 @@ components:
             \ larger batch sizes.\r\nWe recommend experimenting with values in the\
             \ range 0.02 to 0.2 to see what produces the best results."
           format: double
-      description: The hyper parameter settings used in a fine tune job.
-    FineTuningJob:
-      title: FineTuningJob
-      required:
-      - model
-      - training_file
-      type: object
-      properties:
-        object:
-          $ref: '#/components/schemas/TypeDiscriminator'
-        created_at:
+        prompt_loss_weight:
+          type: number
+          description: "The weight to use for loss on the prompt tokens. This controls\
+            \ how much the model tries to learn to generate the prompt\r\n(as compared\
+            \ to the completion which always has a weight of 1.0), and can add a stabilizing\
+            \ effect to training when completions are short.\r\nIf prompts are extremely\
+            \ long (relative to completions), it may make sense to reduce this weight\
+            \ so as to avoid over-prioritizing learning the prompt."
+          format: double
+        compute_classification_metrics:
+          type: boolean
+          description: "A value indicating whether to compute classification metrics.\r\
+            \nIf set, we calculate classification-specific metrics such as accuracy\
+            \ and F-1 score using the validation set at the end of every epoch.\r\n\
+            These metrics can be viewed in the results file. In order to compute classification\
+            \ metrics, you must provide a validation_file.Additionally,\r\nyou must\
+            \ specify classification_n_classes for multiclass classification or classification_positive_class\
+            \ for binary classification."
+        classification_n_classes:
           type: integer
-          description: A timestamp when this job or item was created (in unix epochs).
-          format: unixtime
-          readOnly: true
-        id:
+          description: "The number of classes in a classification task.\r\nThis parameter\
+            \ is required for multiclass classification."
+          format: int32
+        classification_positive_class:
           type: string
-          description: The identity of this item.
-          readOnly: true
-        status:
-          $ref: '#/components/schemas/FineTuningState'
-        model:
-          minLength: 1
-          type: string
-          description: The identifier (model-id) of the base model used for the fine-tune.
-        fine_tuned_model:
-          type: string
-          description: "The identifier (model-id) of the resulting fine tuned model.\
-            \ This property is only populated for successfully completed fine-tune\
-            \ runs.\r\nUse this identifier to create a deployment for inferencing."
-        training_file:
-          minLength: 1
-          type: string
-          description: The file which is used for training.
-        validation_file:
-          type: string
-          description: The file which is used to evaluate the fine tuned model during
-            training.
-        result_files:
+          description: "The positive class in binary classification.\r\nThis parameter\
+            \ is needed to generate precision, recall, and F1 metrics when doing binary\
+            \ classification."
+        classification_betas:
           type: array
-          description: "The result file identities (file-id) containing training and\
-            \ evaluation metrics in csv format.\r\nThe file is only available for\
-            \ successfully completed fine-tune runs."
+          description: "The classification beta values. If this is provided, we calculate\
+            \ F-beta scores at the specified beta values.\r\nThe F-beta score is a\
+            \ generalization of F-1 score. This is only used for binary classification.\r\
+            \nWith a beta of 1 (i.e.the F-1 score), precision and recall are given\
+            \ the same weight.\r\nA larger beta score puts more weight on recall and\
+            \ less on precision. A smaller beta score puts more weight on precision\
+            \ and less on recall."
           items:
-            type: string
-        finished_at:
-          type: integer
-          description: A timestamp when this job or item has finished successfully
-            (in unix epochs).
-          format: int32
-          readOnly: true
-        organisation_id:
-          type: string
-          description: The organisation id of this fine tune job. Unused on Azure
-            OpenAI; compatibility for OpenAI only.
-        trained_tokens:
-          type: integer
-          description: The total number of billable tokens processed by this fine
-            tuning job.
-          format: int32
-          readOnly: true
-        error:
-          $ref: '#/components/schemas/FineTuningJobError'
-        estimated_finish:
-          type: integer
-          description: The Unix timestamp (in seconds) for when the fine-tuning job
-            is estimated to finish. The value will be null if the fine-tuning job
-            is not running.
-          format: int32
-        hyperparameters:
-          $ref: '#/components/schemas/FineTuningHyperParameters'
-        suffix:
-          type: string
-          description: "The suffix used to identify the fine-tuned model. The suffix\
-            \ can contain up to 40 characters (a-z, A-Z, 0-9,- and _) that will be\
-            \ added to your fine-tuned model name."
-        seed:
-          type: integer
-          description: The seed used for the finetuning job.
-          format: int32
-      description: Defines the values of a fine tune job.
-    FineTuningJobCheckpoint:
-      title: FineTuningJobCheckpoint
-      required:
-      - created_at
-      - fine_tuned_model_checkpoint
-      - fine_tuning_job_id
-      - metrics
-      - step_number
-      type: object
-      properties:
-        object:
-          $ref: '#/components/schemas/TypeDiscriminator'
-        id:
-          type: string
-          description: The identity of this checkpoint.
-          readOnly: true
-        created_at:
-          type: integer
-          description: The Unix timestamp (in seconds) for when the checkpoint was
-            created.
-          format: unixtime
-        fine_tuned_model_checkpoint:
-          minLength: 1
-          type: string
-          description: The name of the fine-tuned checkpoint model that is created.
-        step_number:
-          type: integer
-          description: The step number that the checkpoint was created at.
-          format: int32
-        metrics:
-          title: Dictionary`2
-          type: object
-          additionalProperties:
             type: number
             format: double
-          description: The metrics at the step number during the fine-tuning job.
-        fine_tuning_job_id:
-          minLength: 1
-          type: string
-          description: The name of the fine-tuning job that this checkpoint was created
-            from..
-    FineTuningJobCheckpointList:
-      title: FineTuningJobCheckpointList
-      type: object
-      properties:
-        object:
-          $ref: '#/components/schemas/TypeDiscriminator'
-        data:
-          type: array
-          description: The list of items.
-          items:
-            $ref: '#/components/schemas/FineTuningJobCheckpoint'
-        has_more:
-          type: boolean
-          description: A value indicating whether the list contains more elements
-            than returned.
-      description: Represents a list of checkpoints.
-    FineTuningJobCreation:
-      title: FineTuningJobCreation
-      required:
-      - model
-      - training_file
-      type: object
-      properties:
-        model:
-          minLength: 1
-          type: string
-          description: The identifier (model-id) of the base model used for this fine-tune.
-        training_file:
-          minLength: 1
-          type: string
-          description: The file identity (file-id) that is used for training this
-            fine tuned model.
-        validation_file:
-          type: string
-          description: The file identity (file-id) that is used to evaluate the fine
-            tuned model during training.
-        hyperparameters:
-          $ref: '#/components/schemas/FineTuningHyperParameters'
-        suffix:
-          type: string
-          description: "The suffix used to identify the fine-tuned model. The suffix\
-            \ can contain up to 40 characters (a-z, A-Z, 0-9,- and _) that will be\
-            \ added to your fine-tuned model name."
-        seed:
-          type: integer
-          description: "The seed used for the finetuning job. Passing in the same\
-            \ seed and job parameters should produce the same results, but may differ\
-            \ in rare cases. If a seed is not specified, one will be generated for\
-            \ you."
-          format: int32
       description: Defines the values of a fine tune job.
-    FineTuningJobError:
-      title: FineTuningJobError
-      type: object
-      properties:
-        code:
-          type: string
-          description: The machine-readable error code..
-        message:
-          type: string
-          description: The human-readable error message.
-        param:
-          type: string
-          description: "The parameter that was invalid, usually training_file or validation_file.\
-            \ This field will be null if the failure was not parameter-specific."
-      description: "For fine-tuning jobs that have failed, this will contain more\
-        \ information on the cause of the failure."
-    FineTuningJobEvent:
-      title: FineTuningJobEvent
-      required:
-      - created_at
-      - level
-      - message
-      - type
-      type: object
-      properties:
-        object:
-          $ref: '#/components/schemas/TypeDiscriminator'
-        id:
-          type: string
-          description: The identity of this event.
-          readOnly: true
-        created_at:
-          type: integer
-          description: A timestamp when this event was created (in unix epochs).
-          format: unixtime
-        level:
-          $ref: '#/components/schemas/LogLevel'
-        message:
-          minLength: 1
-          type: string
-          description: "The message describing the event. This can be a change of\
-            \ state, e.g., enqueued, started, failed or completed, or other events\
-            \ like uploaded results."
-        type:
-          $ref: '#/components/schemas/EventType'
-        data:
-          type: object
-          description: Machine readable data of this event.
-    FineTuningJobEventList:
-      title: FineTuningJobEventList
+    FineTuneList:
+      title: FineTuneList
       type: object
       properties:
         object:
@@ -1239,62 +1339,74 @@ components:
           type: array
           description: The list of items.
           items:
-            $ref: '#/components/schemas/FineTuningJobEvent'
-        has_more:
-          type: boolean
-          description: A value indicating whether the list contains more elements
-            than returned.
-      description: Represents a list of events.
-    FineTuningJobList:
-      title: FineTuningJobList
-      type: object
-      properties:
-        object:
-          $ref: '#/components/schemas/TypeDiscriminator'
-        data:
-          type: array
-          description: The list of items.
-          items:
-            $ref: '#/components/schemas/FineTuningJob'
-        has_more:
-          type: boolean
-          description: A value indicating whether the list contains more elements
-            than returned.
+            $ref: '#/components/schemas/FineTune'
       description: Represents a list of fine tunes.
-    FineTuningState:
-      title: FineTuningState
-      type: string
-      description: The state of a finetunes object or fine tuning job.
-      enum:
-      - created
-      - pending
-      - running
-      - succeeded
-      - cancelled
-      - failed
-      x-ms-enum:
-        name: FineTuningState
-        modelAsString: true
-        values:
-        - value: created
-          description: The operation was created. This state is not returned by Azure
-            OpenAI and exposed only for compatibility. It can be categorized as an
-            inactive state.
-        - value: pending
-          description: The operation is not yet queued to be processed in the future.
-            It can be categorized as an inactive state.
-        - value: running
-          description: The operation has started to be processed. It can be categorized
-            as an active state.
-        - value: succeeded
-          description: The operation has successfully be processed and is ready for
-            consumption. It can be categorized as a terminal state.
-        - value: cancelled
-          description: The operation has been cancelled and is incomplete. It can
-            be categorized as a terminal state.
-        - value: failed
-          description: The operation has completed processing with a failure and cannot
-            be further consumed. It can be categorized as a terminal state.
+    HyperParameters:
+      title: HyperParameters
+      type: object
+      properties:
+        batch_size:
+          type: integer
+          description: "The batch size to use for training. The batch size is the\
+            \ number of training examples used to train a single forward and backward\
+            \ pass.\r\nIn general, we've found that larger batch sizes tend to work\
+            \ better for larger datasets.\r\nThe default value as well as the maximum\
+            \ value for this property are specific to a base model."
+          format: int32
+        learning_rate_multiplier:
+          type: number
+          description: "The learning rate multiplier to use for training. The fine-tuning\
+            \ learning rate is the original learning rate used for pre-training multiplied\
+            \ by this value.\r\nLarger learning rates tend to perform better with\
+            \ larger batch sizes.\r\nWe recommend experimenting with values in the\
+            \ range 0.02 to 0.2 to see what produces the best results."
+          format: double
+        n_epochs:
+          type: integer
+          description: The number of epochs to train the model for. An epoch refers
+            to one full cycle through the training dataset.
+          format: int32
+        prompt_loss_weight:
+          type: number
+          description: "The weight to use for loss on the prompt tokens. This controls\
+            \ how much the model tries to learn to generate the prompt\r\n(as compared\
+            \ to the completion which always has a weight of 1.0), and can add a stabilizing\
+            \ effect to training when completions are short.\r\nIf prompts are extremely\
+            \ long (relative to completions), it may make sense to reduce this weight\
+            \ so as to avoid over-prioritizing learning the prompt."
+          format: double
+        compute_classification_metrics:
+          type: boolean
+          description: "A value indicating whether to compute classification metrics.\r\
+            \nIf set, we calculate classification-specific metrics such as accuracy\
+            \ and F-1 score using the validation set at the end of every epoch.\r\n\
+            These metrics can be viewed in the results file. In order to compute classification\
+            \ metrics, you must provide a validation_file.Additionally,\r\nyou must\
+            \ specify classification_n_classes for multiclass classification or classification_positive_class\
+            \ for binary classification."
+        classification_n_classes:
+          type: integer
+          description: "The number of classes in a classification task.\r\nThis parameter\
+            \ is required for multiclass classification."
+          format: int32
+        classification_positive_class:
+          type: string
+          description: "The positive class in binary classification.\r\nThis parameter\
+            \ is needed to generate precision, recall, and F1 metrics when doing binary\
+            \ classification."
+        classification_betas:
+          type: array
+          description: "The classification beta values. If this is provided, we calculate\
+            \ F-beta scores at the specified beta values.\r\nThe F-beta score is a\
+            \ generalization of F-1 score. This is only used for binary classification.\r\
+            \nWith a beta of 1 (i.e.the F-1 score), precision and recall are given\
+            \ the same weight.\r\nA larger beta score puts more weight on recall and\
+            \ less on precision. A smaller beta score puts more weight on precision\
+            \ and less on recall."
+          items:
+            type: number
+            format: double
+      description: The hyper parameter settings used in a fine tune job.
     InnerError:
       title: InnerError
       type: object
@@ -1352,6 +1464,32 @@ components:
           description: This event represents a mitigated issue.
         - value: error
           description: This message represents a non recoverable issue.
+    ManualScaleSettings:
+      title: ManualScaleSettings
+      required:
+      - capacity
+      properties:
+        capacity:
+          type: integer
+          description: The constant reserved capacity of the inference endpoint for
+            this deployment.
+          format: int32
+      description: Settings for the manual scale type.
+      allOf:
+      - $ref: '#/components/schemas/ScaleSettings'
+      x-ms-discriminator-value: manual
+    ManualScaleSettingsUpdate:
+      title: ManualScaleSettingsUpdate
+      properties:
+        capacity:
+          type: integer
+          description: The constant reserved capacity of the inference endpoint for
+            this deployment.
+          format: int32
+      description: Settings for the manual scale type.
+      allOf:
+      - $ref: '#/components/schemas/ScaleSettingsUpdate'
+      x-ms-discriminator-value: manual
     Model:
       title: Model
       required:
@@ -1362,17 +1500,23 @@ components:
       properties:
         object:
           $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
         created_at:
           type: integer
           description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
           format: unixtime
           readOnly: true
         id:
           type: string
           description: The identity of this item.
           readOnly: true
-        status:
-          $ref: '#/components/schemas/FineTuningState'
         model:
           type: string
           description: The base model identity (model-id) if this is a fine tune model;
@@ -1401,29 +1545,6 @@ components:
           items:
             $ref: '#/components/schemas/Model'
       description: Represents a list of models.
-    OperationState:
-      title: OperationState
-      type: string
-      description: The state of a job or item.
-      enum:
-      - notRunning
-      - running
-      - succeeded
-      - failed
-      x-ms-enum:
-        name: OperationState
-        modelAsString: true
-        values:
-        - value: notRunning
-          description: The operation is not yet queued to be processed in the future.
-        - value: running
-          description: The operation has started to be processed.
-        - value: succeeded
-          description: The operation has successfully be processed and is ready for
-            consumption.
-        - value: failed
-          description: The operation has completed processing with a failure and cannot
-            be further consumed.
     Purpose:
       title: Purpose
       type: string
@@ -1440,34 +1561,112 @@ components:
           description: This file contains training data for a fine tune job.
         - value: fine-tune-results
           description: This file contains the results of a fine tune job.
+    ScaleSettings:
+      title: ScaleSettings
+      required:
+      - scale_type
+      type: object
+      properties:
+        scale_type:
+          $ref: '#/components/schemas/ScaleType'
+      description: The scale settings of a deployment. It defines the modes for scaling
+        and the reserved capacity.
+      discriminator:
+        propertyName: scale_type
+    ScaleSettingsUpdate:
+      title: ScaleSettingsUpdate
+      required:
+      - scale_type
+      type: object
+      properties:
+        scale_type:
+          $ref: '#/components/schemas/ScaleType'
+      description: The scale settings of a deployment. It defines the modes for scaling
+        and the reserved capacity.
+      discriminator:
+        propertyName: scale_type
+    ScaleType:
+      title: ScaleType
+      type: string
+      description: Defines how scaling operations will be executed.
+      enum:
+      - manual
+      - standard
+      x-ms-enum:
+        name: ScaleType
+        modelAsString: true
+        values:
+        - value: manual
+          description: Scaling of a deployment will happen by manually specifying
+            the capacity of a model.
+        - value: standard
+          description: Scaling of a deployment will happen automatically based on
+            usage.
+    StandardScaleSettings:
+      title: StandardScaleSettings
+      description: Settings for the standard scale type.
+      allOf:
+      - $ref: '#/components/schemas/ScaleSettings'
+      x-ms-discriminator-value: standard
+    State:
+      title: State
+      type: string
+      description: The state of a job or item.
+      enum:
+      - notRunning
+      - running
+      - succeeded
+      - canceled
+      - failed
+      - deleted
+      x-ms-enum:
+        name: State
+        modelAsString: true
+        values:
+        - value: notRunning
+          description: The operation was created and is not queued to be processed
+            in the future.
+        - value: running
+          description: The operation has started to be processed.
+        - value: succeeded
+          description: The operation has successfully be processed and is ready for
+            consumption.
+        - value: canceled
+          description: The operation has been canceled and is incomplete.
+        - value: failed
+          description: The operation has completed processing with a failure and cannot
+            be further consumed.
+        - value: deleted
+          description: The entity has been deleted but may still be referenced by
+            other entities predating the deletion.
     TypeDiscriminator:
       title: TypeDiscriminator
       type: string
       description: Defines the type of an object.
       enum:
       - list
-      - fine_tuning.job
+      - fine-tune
       - file
-      - fine_tuning.job.event
-      - fine_tuning.job.checkpoint
+      - fine-tune-event
       - model
+      - deployment
       x-ms-enum:
         name: TypeDiscriminator
         modelAsString: true
         values:
         - value: list
           description: This object represents a list of other objects.
-        - value: fine_tuning.job
+        - value: fine-tune
           description: This object represents a fine tune job.
         - value: file
           description: This object represents a file.
-        - value: fine_tuning.job.event
-          description: This object represents an event of a fine tuning job.
-        - value: fine_tuning.job.checkpoint
-          description: This object represents a checkpoint of a fine tuning job.
+        - value: fine-tune-event
+          description: This object represents an event of a fine tune job.
         - value: model
-          description: This object represents a model (can be a base model or fine
+          description: This object represents a model (can be a base models or fine
             tune job result).
+        - value: deployment
+          description: This object represents a deployment.
   parameters:
     endpoint:
       name: endpoint
@@ -1490,9 +1689,9 @@ components:
       required: true
       schema:
         type: string
-        x-ms-client-default: 2024-06-01
+        x-ms-client-default: 2022-12-01
         x-ms-parameter-location: client
-      x-ms-client-default: 2024-06-01
+      x-ms-client-default: 2022-12-01
       x-ms-parameter-location: client
   securitySchemes:
     api-key:
@@ -1504,5 +1703,5 @@ x-ms-parameterized-host:
   hostTemplate: "{endpoint}/openai"
   useSchemePrefix: false
   parameters:
-  - $ref: '#/parameters/endpoint'
+  - $ref: '#/components/schemas/parameters/endpoint'
 x-original-swagger-version: "2.0"

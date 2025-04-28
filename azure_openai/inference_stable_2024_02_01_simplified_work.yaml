@@ -1,0 +1,880 @@
+openapi: 3.0.0
+info:
+  title: Azure OpenAI Service API
+  description: Azure OpenAI APIs for completions and search
+  version: '"2024-02-01"'
+servers:
+- url: https://snaplogic-agent-creator.openai.azure.com/openai
+  variables:
+    endpoint:
+      default: your-resource-name.openai.azure.com
+paths:
+  /deployments/{deployment-id}/chat/completions:
+    post:
+      summary: Creates a completion for the chat message
+      operationId: ChatCompletions_Create
+      parameters:
+      - in: path
+        name: deployment-id
+        required: true
+        schema:
+          type: string
+          description: Deployment id of the model which was deployed.
+      - in: query
+        name: api-version
+        required: true
+        schema:
+          type: string
+          example: '"2024-02-01"'
+          description: api version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createChatCompletionRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createChatCompletionResponse'
+          headers:
+            apim-request-id:
+              description: Request ID for troubleshooting purposes
+              schema:
+                type: string
+        default:
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+          headers:
+            apim-request-id:
+              description: Request ID for troubleshooting purposes
+              schema:
+                type: string
+  /deployments/{deployment-id}/embeddings:
+    post:
+      summary: Get a vector representation of a given input that can be easily consumed
+        by machine learning models and algorithms.
+      operationId: embeddings_create
+      parameters:
+      - in: path
+        name: deployment-id
+        required: true
+        schema:
+          type: string
+          example: ada-search-index-v1
+        description: The deployment id of the model which was deployed.
+      - in: query
+        name: api-version
+        required: true
+        schema:
+          type: string
+          example: '"2024-02-01"'
+          description: api version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              properties:
+                input:
+                  description: 'Input text to get embeddings for, encoded as a string.
+                    To get embeddings for multiple inputs in a single request, pass
+                    an array of strings. Each input must not exceed 2048 tokens in
+                    length.
+
+                    Unless you are embedding code, we suggest replacing newlines (\n)
+                    in your input with a single space, as we have observed inferior
+                    results when newlines are present.'
+                  oneOf:
+                  - type: string
+                    default: ''
+                    example: This is a test.
+                    nullable: true
+                  - type: array
+                    minItems: 1
+                    maxItems: 2048
+                    items:
+                      type: string
+                      minLength: 1
+                      example: This is a test.
+                      nullable: false
+                user:
+                  description: A unique identifier representing your end-user, which
+                    can help monitoring and detecting abuse.
+                  type: string
+                  nullable: false
+                input_type:
+                  description: input type of embedding search to use
+                  type: string
+                  example: query
+              required:
+              - input
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                  model:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        object:
+                          type: string
+                        embedding:
+                          type: array
+                          items:
+                            type: number
+                      required:
+                      - index
+                      - object
+                      - embedding
+                  usage:
+                    type: object
+                    properties:
+                      prompt_tokens:
+                        type: integer
+                      total_tokens:
+                        type: integer
+                    required:
+                    - prompt_tokens
+                    - total_tokens
+                required:
+                - object
+                - model
+                - data
+                - usage
+components:
+  schemas:
+    azureChatExtensionConfiguration:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/azureChatExtensionType'
+      description: "  A representation of configuration data for a single Azure OpenAI\
+        \ chat extension. This will be used by a chat\n  completions request that\
+        \ should use Azure OpenAI chat extensions to augment the response behavior.\n\
+        \  The use of this configuration is compatible only with Azure OpenAI."
+      discriminator:
+        propertyName: type
+        mapping:
+          azure_search: '#/components/schemas/azureSearchChatExtensionConfiguration'
+          azure_cosmos_db: '#/components/schemas/azureCosmosDBChatExtensionConfiguration'
+    azureChatExtensionType:
+      type: string
+      description: "  A representation of configuration data for a single Azure OpenAI\
+        \ chat extension. This will be used by a chat\n  completions request that\
+        \ should use Azure OpenAI chat extensions to augment the response behavior.\n\
+        \  The use of this configuration is compatible only with Azure OpenAI."
+      enum:
+      - azure_search
+      - azure_cosmos_db
+      x-ms-enum:
+        name: AzureChatExtensionType
+        modelAsString: true
+        values:
+        - name: azureSearch
+          value: azure_search
+          description: Represents the use of Azure Search as an Azure OpenAI chat
+            extension.
+        - name: azureCosmosDB
+          value: azure_cosmos_db
+          description: Represents the use of Azure Cosmos DB as an Azure OpenAI chat
+            extension.
+    azureChatExtensionsMessageContext:
+      type: object
+      properties:
+        citations:
+          type: array
+          description: The data source retrieval result, used to generate the assistant
+            message in the response.
+          items:
+            $ref: '#/components/schemas/citation'
+          x-ms-identifiers: []
+        intent:
+          type: string
+          description: The detected intent from the chat history, used to pass to
+            the next turn to carry over the context.
+      description: "  A representation of the additional context information available\
+        \ when Azure OpenAI chat extensions are involved\n  in the generation of a\
+        \ corresponding chat completions response. This context information is only\
+        \ populated when\n  using an Azure OpenAI request configured to use a matching\
+        \ extension."
+    chatCompletionChoiceCommon:
+      type: object
+      properties:
+        index:
+          type: integer
+        finish_reason:
+          type: string
+    chatCompletionFunction:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the function to be called. Must be a-z, A-Z, 0-9,
+            or contain underscores and dashes, with a maximum length of 64.
+        description:
+          type: string
+          description: The description of what the function does.
+        parameters:
+          $ref: '#/components/schemas/chatCompletionFunctionParameters'
+      required:
+      - name
+    chatCompletionFunctionCall:
+      type: object
+      description: Deprecated and replaced by `tool_calls`. The name and arguments
+        of a function that should be called, as generated by the model.
+      properties:
+        name:
+          type: string
+          description: The name of the function to call.
+        arguments:
+          type: string
+          description: The arguments to call the function with, as generated by the
+            model in JSON format. Note that the model does not always generate valid
+            JSON, and may hallucinate parameters not defined by your function schema.
+            Validate the arguments in your code before calling your function.
+      required:
+      - name
+      - arguments
+    chatCompletionFunctionParameters:
+      type: object
+      description: The parameters the functions accepts, described as a JSON Schema
+        object. See the [guide](/docs/guides/gpt/function-calling) for examples, and
+        the [JSON Schema reference](https://json-schema.org/understanding-json-schema/)
+        for documentation about the format.
+      additionalProperties: true
+    chatCompletionMessageToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the tool call.
+        type:
+          $ref: '#/components/schemas/toolCallType'
+        function:
+          type: object
+          description: The function that the model called.
+          properties:
+            name:
+              type: string
+              description: The name of the function to call.
+            arguments:
+              type: string
+              description: The arguments to call the function with, as generated by
+                the model in JSON format. Note that the model does not always generate
+                valid JSON, and may hallucinate parameters not defined by your function
+                schema. Validate the arguments in your code before calling your function.
+          required:
+          - name
+          - arguments
+      required:
+      - id
+      - type
+      - function
+    chatCompletionNamedToolChoice:
+      type: object
+      description: Specifies a tool the model should use. Use to force the model to
+        call a specific function.
+      properties:
+        type:
+          type: string
+          enum:
+          - function
+          description: The type of the tool. Currently, only `function` is supported.
+        function:
+          type: object
+          properties:
+            name:
+              type: string
+              description: The name of the function to call.
+          required:
+          - name
+    chatCompletionRequestMessage:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/chatCompletionRequestMessageRole'
+      discriminator:
+        propertyName: role
+        mapping:
+          system: '#/components/schemas/chatCompletionRequestMessageSystem'
+          user: '#/components/schemas/chatCompletionRequestMessageUser'
+          assistant: '#/components/schemas/chatCompletionRequestMessageAssistant'
+          tool: '#/components/schemas/chatCompletionRequestMessageTool'
+          function: '#/components/schemas/chatCompletionRequestMessageFunction'
+      required:
+      - role
+    chatCompletionRequestMessageRole:
+      type: string
+      enum:
+      - system
+      - user
+      - assistant
+      - tool
+      - function
+      description: The role of the messages author.
+      x-ms-enum:
+        name: ChatCompletionRequestMessageRole
+        modelAsString: true
+        values:
+        - value: system
+          description: The message author role is system.
+        - value: user
+          description: The message author role is user.
+        - value: assistant
+          description: The message author role is assistant.
+        - value: tool
+          description: The message author role is tool.
+        - value: function
+          description: Deprecated. The message author role is function.
+    chatCompletionResponseFormat:
+      type: string
+      enum:
+      - text
+      - json_object
+      default: text
+      example: json_object
+      nullable: true
+      description: Setting to `json_object` enables JSON mode. This guarantees that
+        the message the model generates is valid JSON.
+      x-ms-enum:
+        name: ChatCompletionResponseFormat
+        modelAsString: true
+        values:
+        - value: text
+          description: Response format is a plain text string.
+        - value: json_object
+          description: Response format is a JSON object.
+    chatCompletionResponseMessage:
+      type: object
+      description: A chat completion message generated by the model.
+      properties:
+        role:
+          $ref: '#/components/schemas/chatCompletionResponseMessageRole'
+        content:
+          type: string
+          description: The contents of the message.
+          nullable: true
+        tool_calls:
+          type: array
+          description: The tool calls generated by the model, such as function calls.
+          items:
+            $ref: '#/components/schemas/chatCompletionMessageToolCall'
+        function_call:
+          $ref: '#/components/schemas/chatCompletionFunctionCall'
+        context:
+          $ref: '#/components/schemas/azureChatExtensionsMessageContext'
+    chatCompletionResponseMessageRole:
+      type: string
+      enum:
+      - assistant
+      description: The role of the author of the response message.
+    chatCompletionResponseObject:
+      type: string
+      description: The object type.
+      enum:
+      - chat.completion
+      x-ms-enum:
+        name: ChatCompletionResponseObject
+        modelAsString: true
+        values:
+        - value: chat.completion
+          description: The object type is chat completion.
+    chatCompletionTool:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/chatCompletionToolType'
+        function:
+          type: object
+          properties:
+            description:
+              type: string
+              description: A description of what the function does, used by the model
+                to choose when and how to call the function.
+            name:
+              type: string
+              description: The name of the function to be called. Must be a-z, A-Z,
+                0-9, or contain underscores and dashes, with a maximum length of 64.
+            parameters:
+              $ref: '#/components/schemas/chatCompletionFunctionParameters'
+          required:
+          - name
+          - parameters
+      required:
+      - type
+      - function
+    chatCompletionToolChoiceOption:
+      description: 'Controls which (if any) function is called by the model. `none`
+        means the model will not call a function and instead generates a message.
+        `auto` means the model can pick between generating a message or calling a
+        function. Specifying a particular function via `{"type": "function", "function":
+        {"name": "my_function"}}` forces the model to call that function.'
+      oneOf:
+      - type: string
+        description: '`none` means the model will not call a function and instead
+          generates a message. `auto` means the model can pick between generating
+          a message or calling a function.'
+        enum:
+        - none
+        - auto
+      - $ref: '#/components/schemas/chatCompletionNamedToolChoice'
+    chatCompletionToolType:
+      type: string
+      enum:
+      - function
+      description: The type of the tool. Currently, only `function` is supported.
+      x-ms-enum:
+        name: ChatCompletionToolType
+        modelAsString: true
+        values:
+        - value: function
+          description: The tool type is function.
+    chatCompletionsRequestCommon:
+      type: object
+      properties:
+        temperature:
+          description: 'What sampling temperature to use, between 0 and 2. Higher
+            values like 0.8 will make the output more random, while lower values like
+            0.2 will make it more focused and deterministic.
+
+            We generally recommend altering this or `top_p` but not both.'
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 1
+          example: 1
+          nullable: true
+        top_p:
+          description: 'An alternative to sampling with temperature, called nucleus
+            sampling, where the model considers the results of the tokens with top_p
+            probability mass. So 0.1 means only the tokens comprising the top 10%
+            probability mass are considered.
+
+            We generally recommend altering this or `temperature` but not both.'
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 1
+          example: 1
+          nullable: true
+        stream:
+          description: 'If set, partial message deltas will be sent, like in ChatGPT.
+            Tokens will be sent as data-only server-sent events as they become available,
+            with the stream terminated by a `data: [DONE]` message.'
+          type: boolean
+          nullable: true
+          default: false
+        stop:
+          description: Up to 4 sequences where the API will stop generating further
+            tokens.
+          oneOf:
+          - type: string
+            nullable: true
+          - type: array
+            items:
+              type: string
+              nullable: false
+            minItems: 1
+            maxItems: 4
+            description: Array minimum size of 1 and maximum of 4
+          default: null
+        max_tokens:
+          description: The maximum number of tokens allowed for the generated answer.
+            By default, the number of tokens the model can return will be (4096 -
+            prompt tokens).
+          type: integer
+          default: 4096
+        presence_penalty:
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens
+            based on whether they appear in the text so far, increasing the model's
+            likelihood to talk about new topics.
+          type: number
+          default: 0
+          minimum: -2
+          maximum: 2
+        frequency_penalty:
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens
+            based on their existing frequency in the text so far, decreasing the model's
+            likelihood to repeat the same line verbatim.
+          type: number
+          default: 0
+          minimum: -2
+          maximum: 2
+        logit_bias:
+          description: Modify the likelihood of specified tokens appearing in the
+            completion. Accepts a json object that maps tokens (specified by their
+            token ID in the tokenizer) to an associated bias value from -100 to 100.
+            Mathematically, the bias is added to the logits generated by the model
+            prior to sampling. The exact effect will vary per model, but values between
+            -1 and 1 should decrease or increase likelihood of selection; values like
+            -100 or 100 should result in a ban or exclusive selection of the relevant
+            token.
+          type: object
+          nullable: true
+        user:
+          description: A unique identifier representing your end-user, which can help
+            Azure OpenAI to monitor and detect abuse.
+          type: string
+          example: user-1234
+          nullable: false
+    chatCompletionsResponseCommon:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the chat completion.
+        object:
+          $ref: '#/components/schemas/chatCompletionResponseObject'
+        created:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp (in seconds) of when the chat completion
+            was created.
+        model:
+          type: string
+          description: The model used for the chat completion.
+        usage:
+          $ref: '#/components/schemas/completionUsage'
+        system_fingerprint:
+          type: string
+          description: Can be used in conjunction with the `seed` request parameter
+            to understand when backend changes have been made that might impact determinism.
+      required:
+      - id
+      - object
+      - created
+      - model
+    citation:
+      required:
+      - content
+      type: object
+      properties:
+        content:
+          type: string
+          description: The content of the citation.
+        title:
+          type: string
+          description: The title of the citation.
+        url:
+          type: string
+          description: The URL of the citation.
+        filepath:
+          type: string
+          description: The file path of the citation.
+        chunk_id:
+          type: string
+          description: The chunk ID of the citation.
+      description: citation information for a chat completions response message.
+    completionUsage:
+      type: object
+      description: Usage statistics for the completion request.
+      properties:
+        prompt_tokens:
+          type: integer
+          description: Number of tokens in the prompt.
+        completion_tokens:
+          type: integer
+          description: Number of tokens in the generated completion.
+        total_tokens:
+          type: integer
+          description: Total number of tokens used in the request (prompt + completion).
+      required:
+      - prompt_tokens
+      - completion_tokens
+      - total_tokens
+    contentFilterChoiceResults:
+      type: object
+      description: Information about the content filtering category (hate, sexual,
+        violence, self_harm), if it has been detected, as well as the severity level
+        (very_low, low, medium, high-scale that determines the intensity and risk
+        level of harmful content) and if it has been filtered or not. Information
+        about third party text and profanity, if it has been detected, and if it has
+        been filtered or not. And information about customer block list, if it has
+        been filtered and its id.
+      allOf:
+      - $ref: '#/components/schemas/contentFilterResultsBase'
+      - properties:
+          protected_material_text:
+            $ref: '#/components/schemas/contentFilterDetectedResult'
+      - properties:
+          protected_material_code:
+            $ref: '#/components/schemas/contentFilterDetectedWithCitationResult'
+    contentFilterDetectedResult:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/contentFilterResultBase'
+      - properties:
+          detected:
+            type: boolean
+    contentFilterDetectedWithCitationResult:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/contentFilterDetectedResult'
+      - properties:
+          citation:
+            type: object
+            properties:
+              URL:
+                type: string
+              license:
+                type: string
+    contentFilterPromptResults:
+      type: object
+      description: Information about the content filtering category (hate, sexual,
+        violence, self_harm), if it has been detected, as well as the severity level
+        (very_low, low, medium, high-scale that determines the intensity and risk
+        level of harmful content) and if it has been filtered or not. Information
+        about jailbreak content and profanity, if it has been detected, and if it
+        has been filtered or not. And information about customer block list, if it
+        has been filtered and its id.
+      allOf:
+      - $ref: '#/components/schemas/contentFilterResultsBase'
+      - properties:
+          jailbreak:
+            $ref: '#/components/schemas/contentFilterDetectedResult'
+    contentFilterResultBase:
+      type: object
+      properties:
+        filtered:
+          type: boolean
+      required:
+      - filtered
+    contentFilterResultsBase:
+      type: object
+      description: Information about the content filtering results.
+      properties:
+        sexual:
+          $ref: '#/components/schemas/contentFilterSeverityResult'
+        violence:
+          $ref: '#/components/schemas/contentFilterSeverityResult'
+        hate:
+          $ref: '#/components/schemas/contentFilterSeverityResult'
+        self_harm:
+          $ref: '#/components/schemas/contentFilterSeverityResult'
+        profanity:
+          $ref: '#/components/schemas/contentFilterDetectedResult'
+        error:
+          $ref: '#/components/schemas/errorBase'
+    contentFilterSeverityResult:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/contentFilterResultBase'
+      - properties:
+          severity:
+            type: string
+            enum:
+            - safe
+            - low
+            - medium
+            - high
+            x-ms-enum:
+              name: ContentFilterSeverity
+              modelAsString: true
+              values:
+              - value: safe
+                description: General content or related content in generic or non-harmful
+                  contexts.
+              - value: low
+                description: Harmful content at a low intensity and risk level.
+              - value: medium
+                description: Harmful content at a medium intensity and risk level.
+              - value: high
+                description: Harmful content at a high intensity and risk level.
+    createChatCompletionRequest:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/chatCompletionsRequestCommon'
+      - properties:
+          messages:
+            description: A list of messages comprising the conversation so far. [Example
+              Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/chatCompletionRequestMessage'
+          data_sources:
+            type: array
+            description: "  The configuration entries for Azure OpenAI chat extensions\
+              \ that use them.\n  This additional specification is only compatible\
+              \ with Azure OpenAI."
+            items:
+              $ref: '#/components/schemas/azureChatExtensionConfiguration'
+          n:
+            type: integer
+            minimum: 1
+            maximum: 128
+            default: 1
+            example: 1
+            nullable: true
+            description: How many chat completion choices to generate for each input
+              message.
+          seed:
+            type: integer
+            minimum: -9223372036854776000
+            maximum: 9223372036854776000
+            default: 0
+            example: 1
+            nullable: true
+            description: If specified, our system will make a best effort to sample
+              deterministically, such that repeated requests with the same `seed`
+              and parameters should return the same result.Determinism is not guaranteed,
+              and you should refer to the `system_fingerprint` response parameter
+              to monitor changes in the backend.
+          response_format:
+            type: object
+            description: An object specifying the format that the model must output.
+              Used to enable JSON mode.
+            properties:
+              type:
+                $ref: '#/components/schemas/chatCompletionResponseFormat'
+          tools:
+            description: A list of tools the model may call. Currently, only functions
+              are supported as a tool. Use this to provide a list of functions the
+              model may generate JSON inputs for.
+            type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/chatCompletionTool'
+          tool_choice:
+            $ref: '#/components/schemas/chatCompletionToolChoiceOption'
+          functions:
+            description: Deprecated in favor of `tools`. A list of functions the model
+              may generate JSON inputs for.
+            type: array
+            minItems: 1
+            maxItems: 128
+            items:
+              $ref: '#/components/schemas/chatCompletionFunction'
+          function_call:
+            description: Deprecated in favor of `tool_choice`. Controls how the model
+              responds to function calls. "none" means the model does not call a function,
+              and responds to the end-user. "auto" means the model can pick between
+              an end-user or calling a function.  Specifying a particular function
+              via `{"name":\ "my_function"}` forces the model to call that function.
+              "none" is the default when no functions are present. "auto" is the default
+              if functions are present.
+            oneOf:
+            - type: string
+              enum:
+              - none
+              - auto
+              description: '`none` means the model will not call a function and instead
+                generates a message. `auto` means the model can pick between generating
+                a message or calling a function.'
+            - type: object
+              description: 'Specifying a particular function via `{"name": "my_function"}`
+                forces the model to call that function.'
+              properties:
+                name:
+                  type: string
+                  description: The name of the function to call.
+              required:
+              - name
+    createChatCompletionResponse:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/chatCompletionsResponseCommon'
+      - properties:
+          prompt_filter_results:
+            $ref: '#/components/schemas/promptFilterResults'
+          choices:
+            type: array
+            items:
+              type: object
+              allOf:
+              - $ref: '#/components/schemas/chatCompletionChoiceCommon'
+              - properties:
+                  message:
+                    $ref: '#/components/schemas/chatCompletionResponseMessage'
+                  content_filter_results:
+                    $ref: '#/components/schemas/contentFilterChoiceResults'
+    error:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/errorBase'
+      properties:
+        param:
+          type: string
+        type:
+          type: string
+        inner_error:
+          $ref: '#/components/schemas/innerError'
+    errorBase:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    errorResponse:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/error'
+    innerError:
+      description: Inner error with additional details.
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/innerErrorCode'
+        content_filter_results:
+          $ref: '#/components/schemas/contentFilterPromptResults'
+    innerErrorCode:
+      description: Error codes for the inner error object.
+      enum:
+      - ResponsibleAIPolicyViolation
+      type: string
+      x-ms-enum:
+        name: InnerErrorCode
+        modelAsString: true
+        values:
+        - value: ResponsibleAIPolicyViolation
+          description: The prompt violated one of more content filter rules.
+    promptFilterResult:
+      type: object
+      description: Content filtering results for a single prompt in the request.
+      properties:
+        prompt_index:
+          type: integer
+        content_filter_results:
+          $ref: '#/components/schemas/contentFilterPromptResults'
+    promptFilterResults:
+      type: array
+      description: Content filtering results for zero or more prompts in the request.
+        In a streaming request, results for different prompts may arrive at different
+        times or in different orders.
+      items:
+        $ref: '#/components/schemas/promptFilterResult'
+    toolCallType:
+      type: string
+      enum:
+      - function
+      description: The type of the tool call, in this case `function`.
+      x-ms-enum:
+        name: ToolCallType
+        modelAsString: true
+        values:
+        - value: function
+          description: The tool call type is function.

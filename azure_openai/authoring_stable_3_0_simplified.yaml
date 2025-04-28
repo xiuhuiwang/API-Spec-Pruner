@@ -1,11 +1,41 @@
 openapi: 3.0.1
 info:
-  title: Azure OpenAI API version 2024-06-01
+  title: Azure OpenAI API version "2022-12-01"
   description: APIs for fine-tuning and managing deployments of OpenAI models.
-  version: '2024-06-01'
+  version: "2022-12-01"
 servers:
-- url: /
+- url: https://snaplogic-agent-creator.openai.azure.com/openai
 paths:
+  /deployments:
+    get:
+      tags:
+      - 'Deployments:'
+      summary: Gets the list of deployments owned by the Azure OpenAI resource.
+      operationId: Deployments_List
+      parameters:
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: "2022-12-01"
+          x-ms-parameter-location: client
+        x-ms-client-default: "2022-12-01"
+        x-ms-parameter-location: client
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentList'
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /models:
     get:
       tags:
@@ -19,13 +49,11 @@ paths:
         in: query
         description: The requested API version.
         required: true
-        style: form
-        explode: true
         schema:
           type: string
-          x-ms-client-default: '2024-06-01'
+          x-ms-client-default: "2022-12-01"
           x-ms-parameter-location: client
-        x-ms-client-default: '2024-06-01'
+        x-ms-client-default: "2022-12-01"
         x-ms-parameter-location: client
       responses:
         '200':
@@ -51,44 +79,15 @@ paths:
         \ metrics for the corresponding fine-tune job."
       operationId: Files_List
       parameters:
-      - name: purpose
-        in: query
-        description: Only return files with the given purpose.
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - fine-tune
-          - fine-tune-results
-          x-ms-enum:
-            name: Purpose
-            modelAsString: true
-            values:
-            - value: fine-tune
-              description: This file contains training data for a fine tune job.
-            - value: fine-tune-results
-              description: This file contains the results of a fine tune job.
-        x-ms-enum:
-          name: Purpose
-          modelAsString: true
-          values:
-          - value: fine-tune
-            description: This file contains training data for a fine tune job.
-          - value: fine-tune-results
-            description: This file contains the results of a fine tune job.
       - name: api-version
         in: query
         description: The requested API version.
         required: true
-        style: form
-        explode: true
         schema:
           type: string
-          x-ms-client-default: '2024-06-01'
+          x-ms-client-default: "2022-12-01"
           x-ms-parameter-location: client
-        x-ms-client-default: '2024-06-01'
+        x-ms-client-default: "2022-12-01"
         x-ms-parameter-location: client
       responses:
         '200':
@@ -114,13 +113,11 @@ paths:
         in: query
         description: The requested API version.
         required: true
-        style: form
-        explode: true
         schema:
           type: string
-          x-ms-client-default: '2024-06-01'
+          x-ms-client-default: "2022-12-01"
           x-ms-parameter-location: client
-        x-ms-client-default: '2024-06-01'
+        x-ms-client-default: "2022-12-01"
         x-ms-parameter-location: client
       requestBody:
         content:
@@ -159,8 +156,6 @@ paths:
           headers:
             Location:
               description: The location of the newly created item.
-              style: simple
-              explode: false
               schema:
                 type: string
                 format: url
@@ -174,16 +169,50 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /files/{file-id}:
+    delete:
+      tags:
+      - 'Files:'
+      summary: "Deletes the file with the given file-id.\r\nDeletion is also allowed\
+        \ if a file was used, e.g., as training file in a fine-tune job."
+      operationId: Files_Delete
+      parameters:
+      - name: file-id
+        in: path
+        description: The identifier of the file.
+        required: true
+        schema:
+          type: string
+      - name: api-version
+        in: query
+        description: The requested API version.
+        required: true
+        schema:
+          type: string
+          x-ms-client-default: "2022-12-01"
+          x-ms-parameter-location: client
+        x-ms-client-default: "2022-12-01"
+        x-ms-parameter-location: client
+      responses:
+        '204':
+          description: The file was successfully deleted.
+          content: {}
+        default:
+          description: An error occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     Capabilities:
       title: Capabilities
       required:
-      - chat_completion
       - completion
       - embeddings
       - fine_tune
       - inference
+      - scale_types
       type: object
       properties:
         fine_tune:
@@ -195,13 +224,69 @@ components:
         completion:
           type: boolean
           description: A value indicating whether a model supports completion.
-        chat_completion:
-          type: boolean
-          description: A value indicating whether a model supports chat completion.
         embeddings:
           type: boolean
           description: A value indicating whether a model supports embeddings.
+        scale_types:
+          type: array
+          description: The supported scale types for deployments of this model.
+          items:
+            $ref: '#/components/schemas/ScaleType'
       description: The capabilities of a base or fine tune model.
+    Deployment:
+      title: Deployment
+      required:
+      - model
+      - scale_settings
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
+        created_at:
+          type: integer
+          description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
+          format: unixtime
+          readOnly: true
+        id:
+          type: string
+          description: The identity of this item.
+          readOnly: true
+        model:
+          minLength: 1
+          type: string
+          description: The OpenAI model identifier (model-id) to deploy. Can be a
+            base model or a fine tune.
+        owner:
+          type: string
+          description: The owner of this deployment. For Azure OpenAI only "organization-owner"
+            is supported.
+          readOnly: true
+        scale_settings:
+          $ref: '#/components/schemas/ScaleSettings'
+        error:
+          $ref: '#/components/schemas/Error'
+      description: Deployments manage the reserved quota for Azure OpenAI models and
+        make them available for inference requests.
+    DeploymentList:
+      title: DeploymentList
+      type: object
+      properties:
+        object:
+          $ref: '#/components/schemas/TypeDiscriminator'
+        data:
+          type: array
+          description: The list of items.
+          items:
+            $ref: '#/components/schemas/Deployment'
+      description: Represents a list of deployments.
     Deprecation:
       title: Deprecation
       required:
@@ -240,6 +325,10 @@ components:
         details:
           type: array
           description: The error details if available.
+          items:
+            $ref: '#/components/schemas/Error'
+        innererror:
+          $ref: '#/components/schemas/InnerError'
       description: "Error content as defined in the Microsoft REST guidelines\r\n\
         (https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses)."
     ErrorCode:
@@ -258,9 +347,6 @@ components:
       - quotaExceeded
       - jsonlValidationFailed
       - fileImportFailed
-      - tooManyRequests
-      - unauthorized
-      - contentFilter
       x-ms-enum:
         name: ErrorCode
         modelAsString: true
@@ -289,12 +375,6 @@ components:
           description: Validation of jsonl data failed.
         - value: fileImportFailed
           description: Import of file failed.
-        - value: tooManyRequests
-          description: Too many requests. Please retry later.
-        - value: unauthorized
-          description: The current user/api key is not authorized for the operation.
-        - value: contentFilter
-          description: Image generation failed as a result of our safety system.
     ErrorResponse:
       title: ErrorResponse
       required:
@@ -314,17 +394,23 @@ components:
       properties:
         object:
           $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
         created_at:
           type: integer
           description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
           format: unixtime
           readOnly: true
         id:
           type: string
           description: The identity of this item.
           readOnly: true
-        status:
-          $ref: '#/components/schemas/FileState'
         bytes:
           type: integer
           description: "The size of this file when available (can be null). File sizes\
@@ -338,11 +424,10 @@ components:
           minLength: 1
           type: string
           description: The name of the file.
-        status_details:
-          type: string
-          description: The error message with details in case processing of this file
-            failed.
-          readOnly: true
+        statistics:
+          $ref: '#/components/schemas/FileStatistics'
+        error:
+          $ref: '#/components/schemas/Error'
       description: A file is a document usable for training and validation. It can
         also be a service generated document with result details.
     FileList:
@@ -357,80 +442,44 @@ components:
           items:
             $ref: '#/components/schemas/File'
       description: Represents a list of files.
-    FileState:
-      title: FileState
+    FileStatistics:
+      title: FileStatistics
+      type: object
+      properties:
+        tokens:
+          type: integer
+          description: The number of tokens used in prompts and completions for files
+            of kind "fine-tune" once validation of file content is complete.
+          format: int32
+        examples:
+          type: integer
+          description: The number of contained training examples in files of kind
+            "fine-tune" once validation of file content is complete.
+          format: int32
+      description: A file is a document usable for training and validation. It can
+        also be a service generated document with result details.
+    InnerError:
+      title: InnerError
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/InnerErrorCode'
+        innererror:
+          $ref: '#/components/schemas/InnerError'
+      description: "Inner error as defined in the Microsoft REST guidelines\r\n(https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses)."
+    InnerErrorCode:
+      title: InnerErrorCode
       type: string
-      description: The state of a file.
+      description: "Inner error codes as defined in the Microsoft REST guidelines\r\
+        \n(https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#7102-error-condition-responses)."
       enum:
-      - uploaded
-      - pending
-      - running
-      - processed
-      - error
-      - deleting
-      - deleted
+      - invalidPayload
       x-ms-enum:
-        name: FileState
+        name: InnerErrorCode
         modelAsString: true
         values:
-        - value: uploaded
-          description: The file has been uploaded but it's not yet processed. This
-            state is not returned by Azure OpenAI and exposed only for compatibility.
-            It can be categorized as an inactive state.
-        - value: pending
-          description: The operation was created and is not queued to be processed
-            in the future. It can be categorized as an inactive state.
-        - value: running
-          description: The operation has started to be processed. It can be categorized
-            as an active state.
-        - value: processed
-          description: The operation has successfully be processed and is ready for
-            consumption. It can be categorized as a terminal state.
-        - value: error
-          description: The operation has completed processing with a failure and cannot
-            be further consumed. It can be categorized as a terminal state.
-        - value: deleting
-          description: The entity is ni the process to be deleted. This state is not
-            returned by Azure OpenAI and exposed only for compatibility. It can be
-            categorized as an active state.
-        - value: deleted
-          description: The entity has been deleted but may still be referenced by
-            other entities predating the deletion. It can be categorized as a terminal
-            state.
-    FineTuningState:
-      title: FineTuningState
-      type: string
-      description: The state of a finetunes object or fine tuning job.
-      enum:
-      - created
-      - pending
-      - running
-      - succeeded
-      - cancelled
-      - failed
-      x-ms-enum:
-        name: FineTuningState
-        modelAsString: true
-        values:
-        - value: created
-          description: The operation was created. This state is not returned by Azure
-            OpenAI and exposed only for compatibility. It can be categorized as an
-            inactive state.
-        - value: pending
-          description: The operation is not yet queued to be processed in the future.
-            It can be categorized as an inactive state.
-        - value: running
-          description: The operation has started to be processed. It can be categorized
-            as an active state.
-        - value: succeeded
-          description: The operation has successfully be processed and is ready for
-            consumption. It can be categorized as a terminal state.
-        - value: cancelled
-          description: The operation has been cancelled and is incomplete. It can
-            be categorized as a terminal state.
-        - value: failed
-          description: The operation has completed processing with a failure and cannot
-            be further consumed. It can be categorized as a terminal state.
+        - value: invalidPayload
+          description: The request data is invalid for this operation.
     LifeCycleStatus:
       title: LifeCycleStatus
       type: string
@@ -458,17 +507,23 @@ components:
       properties:
         object:
           $ref: '#/components/schemas/TypeDiscriminator'
+        status:
+          $ref: '#/components/schemas/State'
         created_at:
           type: integer
           description: A timestamp when this job or item was created (in unix epochs).
+          format: unixtime
+          readOnly: true
+        updated_at:
+          type: integer
+          description: A timestamp when this job or item was modified last (in unix
+            epochs).
           format: unixtime
           readOnly: true
         id:
           type: string
           description: The identity of this item.
           readOnly: true
-        status:
-          $ref: '#/components/schemas/FineTuningState'
         model:
           type: string
           description: The base model identity (model-id) if this is a fine tune model;
@@ -513,31 +568,91 @@ components:
           description: This file contains training data for a fine tune job.
         - value: fine-tune-results
           description: This file contains the results of a fine tune job.
+    ScaleSettings:
+      title: ScaleSettings
+      required:
+      - scale_type
+      type: object
+      properties:
+        scale_type:
+          $ref: '#/components/schemas/ScaleType'
+      description: The scale settings of a deployment. It defines the modes for scaling
+        and the reserved capacity.
+      discriminator:
+        propertyName: scale_type
+    ScaleType:
+      title: ScaleType
+      type: string
+      description: Defines how scaling operations will be executed.
+      enum:
+      - manual
+      - standard
+      x-ms-enum:
+        name: ScaleType
+        modelAsString: true
+        values:
+        - value: manual
+          description: Scaling of a deployment will happen by manually specifying
+            the capacity of a model.
+        - value: standard
+          description: Scaling of a deployment will happen automatically based on
+            usage.
+    State:
+      title: State
+      type: string
+      description: The state of a job or item.
+      enum:
+      - notRunning
+      - running
+      - succeeded
+      - canceled
+      - failed
+      - deleted
+      x-ms-enum:
+        name: State
+        modelAsString: true
+        values:
+        - value: notRunning
+          description: The operation was created and is not queued to be processed
+            in the future.
+        - value: running
+          description: The operation has started to be processed.
+        - value: succeeded
+          description: The operation has successfully be processed and is ready for
+            consumption.
+        - value: canceled
+          description: The operation has been canceled and is incomplete.
+        - value: failed
+          description: The operation has completed processing with a failure and cannot
+            be further consumed.
+        - value: deleted
+          description: The entity has been deleted but may still be referenced by
+            other entities predating the deletion.
     TypeDiscriminator:
       title: TypeDiscriminator
       type: string
       description: Defines the type of an object.
       enum:
       - list
-      - fine_tuning.job
+      - fine-tune
       - file
-      - fine_tuning.job.event
-      - fine_tuning.job.checkpoint
+      - fine-tune-event
       - model
+      - deployment
       x-ms-enum:
         name: TypeDiscriminator
         modelAsString: true
         values:
         - value: list
           description: This object represents a list of other objects.
-        - value: fine_tuning.job
+        - value: fine-tune
           description: This object represents a fine tune job.
         - value: file
           description: This object represents a file.
-        - value: fine_tuning.job.event
-          description: This object represents an event of a fine tuning job.
-        - value: fine_tuning.job.checkpoint
-          description: This object represents a checkpoint of a fine tuning job.
+        - value: fine-tune-event
+          description: This object represents an event of a fine tune job.
         - value: model
-          description: This object represents a model (can be a base model or fine
+          description: This object represents a model (can be a base models or fine
             tune job result).
+        - value: deployment
+          description: This object represents a deployment.

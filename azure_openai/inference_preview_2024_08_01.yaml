@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Azure OpenAI Service API
   description: Azure OpenAI APIs for completions and search
-  version: 2025-02-01-preview
+  version: 2024-08-01-preview
 servers:
   - url: https://{endpoint}/openai
     variables:
@@ -30,7 +30,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -94,7 +94,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -106,7 +106,8 @@ paths:
               properties:
                 input:
                   description: |-
-                    Input text to embed, encoded as a string or array of tokens. To embed multiple inputs in a single request, pass an array of strings or array of token arrays. The input must not exceed the max input tokens for the model (8192 tokens for `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048 dimensions or less.
+                    Input text to get embeddings for, encoded as a string. To get embeddings for multiple inputs in a single request, pass an array of strings. Each input must not exceed 2048 tokens in length.
+                    Unless you are embedding code, we suggest replacing newlines (\n) in your input with a single space, as we have observed inferior results when newlines are present.
                   oneOf:
                     - type: string
                       default: ""
@@ -203,7 +204,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -270,7 +271,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -313,7 +314,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -356,7 +357,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -398,7 +399,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -458,7 +459,7 @@ paths:
         - name: before
           in: query
           description: &pagination_before_param_description |
-            A cursor for use in pagination. `before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with obj_foo, your subsequent call can include before=obj_foo in order to fetch the previous page of the list.
+            A cursor for use in pagination. `before` is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include before=obj_foo in order to fetch the previous page of the list.
           schema:
             type: string
         - in: query
@@ -466,7 +467,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -489,7 +490,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       requestBody:
         required: true
@@ -526,7 +527,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -555,7 +556,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -590,7 +591,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -614,7 +615,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -650,7 +651,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -679,7 +680,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -714,7 +715,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -787,7 +788,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -816,7 +817,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -858,7 +859,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -893,7 +894,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -923,7 +924,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -993,7 +994,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -1017,31 +1018,12 @@ paths:
           schema:
             type: string
           description: The ID of the thread to run.
-        - name: include[]
-          in: query
-          description: >
-            A list of additional fields to include in the response. Currently
-            the only supported value is
-            `step_details.tool_calls[*].file_search.results[*].content` to fetch
-            the file search result content.
-
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - step_details.tool_calls[*].file_search.results[*].content
-              x-ms-enum:
-                name: Include
-                modelAsString: true
-                values:
-                  - value: step_details.tool_calls[*].file_search.results[*].content
         - in: query
           name: api-version
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -1083,7 +1065,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       responses:
         "200":
@@ -1118,7 +1100,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -1161,7 +1143,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
             description: api version
       requestBody:
         required: true
@@ -1203,7 +1185,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1273,27 +1255,8 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
-        - name: include[]
-          in: query
-          description: >
-            A list of additional fields to include in the response. Currently
-            the only supported value is
-            `step_details.tool_calls[*].file_search.results[*].content` to fetch
-            the file search result content.
-
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - step_details.tool_calls[*].file_search.results[*].content
-              x-ms-enum:
-                name: Include
-                modelAsString: true
-                values:
-                  - value: step_details.tool_calls[*].file_search.results[*].content
       responses:
         "200":
           description: OK
@@ -1329,31 +1292,12 @@ paths:
           schema:
             type: string
           description: The ID of the run step to retrieve.
-        - name: include[]
-          in: query
-          description: >
-            A list of additional fields to include in the response. Currently
-            the only supported value is
-            `step_details.tool_calls[*].file_search.results[*].content` to fetch
-            the file search result content.
-
-          schema:
-            type: array
-            items:
-              type: string
-              enum:
-                - step_details.tool_calls[*].file_search.results[*].content
-              x-ms-enum:
-                name: Include
-                modelAsString: true
-                values:
-                  - value: step_details.tool_calls[*].file_search.results[*].content
         - in: query
           name: api-version
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1407,7 +1351,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1436,7 +1380,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1467,7 +1411,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1496,7 +1440,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       requestBody:
         required: true
@@ -1532,7 +1476,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1607,7 +1551,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1638,7 +1582,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       requestBody:
         required: true
@@ -1683,7 +1627,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1718,7 +1662,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1751,7 +1695,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       requestBody:
         required: true
@@ -1796,7 +1740,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1833,7 +1777,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1914,7 +1858,7 @@ paths:
           required: true
           schema:
             type: string
-            example: 2025-02-01-preview
+            example: 2024-08-01-preview
           description: api version
       responses:
         "200":
@@ -1998,19 +1942,6 @@ components:
         revised_prompt:
           type: string
           description: The prompt that was used to generate the image, if there was any revision to the prompt.
-    contentFilterCompletionTextSpan:
-      description: Describes a span within generated completion text.  Offset 0 is the first UTF32 code point of the completion text.
-      type: object
-      properties:
-        completion_start_offset:
-          description: Offset of the UTF32 code point which begins the span.
-          type: integer
-        completion_end_offset:
-          description: Offset of the first UTF32 code point which is excluded from the span. This field is always equal to completion_start_offset for empty spans. This field is always larger than completion_start_offset for non-empty spans.
-          type: integer
-      required:
-        - completion_start_offset
-        - completion_end_offset
     contentFilterResultBase:
       type: object
       properties:
@@ -2070,19 +2001,6 @@ components:
       required:
         - detected
         - filtered
-    contentFilterDetectedWithCompletionTextSpansResult:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/contentFilterDetectedResult"
-        - properties:
-            details:
-              type: array
-              items:
-                $ref: "#/components/schemas/contentFilterCompletionTextSpan"
-      required:
-        - detected
-        - filtered
-        - details
     contentFilterIdResult:
       type: object
       allOf:
@@ -2132,9 +2050,6 @@ components:
         - properties:
             protected_material_code:
               $ref: "#/components/schemas/contentFilterDetectedWithCitationResult"
-        - properties:
-            ungrounded_material:
-              $ref: "#/components/schemas/contentFilterDetectedWithCompletionTextSpansResult"
     contentFilterDetailedResults:
       type: object
       description: Content filtering results with a detail of content filter ids for the filtered segments.
@@ -2147,7 +2062,6 @@ components:
               type: array
       required:
         - filtered
-        - details
     promptFilterResult:
       type: object
       description: Content filtering results for a single prompt in the request.
@@ -2227,18 +2141,9 @@ components:
               description: Array minimum size of 1 and maximum of 4
           default: null
         max_tokens:
-          description: |
-            The maximum number of tokens allowed for the generated answer. By default, the number of tokens the model can return will be (4096 - prompt tokens).
-
-            This is not compatible with o1 series models.
+          description: The maximum number of tokens allowed for the generated answer. By default, the number of tokens the model can return will be (4096 - prompt tokens).
           type: integer
           default: 4096
-        max_completion_tokens:
-          description: |
-            An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens. This is only supported in o1 series models. Will expand the support to other models in future API release.
-
-          type: integer
-          nullable: true
         presence_penalty:
           description: Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
           type: number
@@ -2255,17 +2160,6 @@ components:
           description: Modify the likelihood of specified tokens appearing in the completion. Accepts a json object that maps tokens (specified by their token ID in the tokenizer) to an associated bias value from -100 to 100. Mathematically, the bias is added to the logits generated by the model prior to sampling. The exact effect will vary per model, but values between -1 and 1 should decrease or increase likelihood of selection; values like -100 or 100 should result in a ban or exclusive selection of the relevant token.
           type: object
           nullable: true
-        store:
-          type: boolean
-          default: false
-          nullable: true
-          description: Whether or not to store the output of this chat completion request for use in our model distillation or evaluation products.
-        metadata:
-          type: object
-          nullable: true
-          description: Developer-defined tags and values used for filtering completions in the stored completions dashboard.
-          additionalProperties:
-            type: string
         user:
           description: A unique identifier representing your end-user, which can help Azure OpenAI to monitor and detect abuse.
           type: string
@@ -2410,8 +2304,6 @@ components:
           nullable: true
           type: string
           example: "test."
-        stream_options:
-          $ref: "#/components/schemas/chatCompletionStreamOptions"
         temperature:
           type: number
           minimum: 0
@@ -2541,28 +2433,6 @@ components:
                   This additional specification is only compatible with Azure OpenAI.
               items:
                 $ref: "#/components/schemas/azureChatExtensionConfiguration"
-            reasoning_effort:
-              type: string
-              enum:
-                - low
-                - medium
-                - high
-              default: medium
-              description: >
-                **o1 models only** 
-
-
-                Constrains effort on reasoning for 
-
-                [reasoning
-                models](https://platform.openai.com/docs/guides/reasoning).
-
-                Currently supported values are `low`, `medium`, and `high`. Reducing
-
-                reasoning effort can result in faster responses and fewer tokens
-                used
-
-                on reasoning in a response.
             frequency_penalty:
               type: number
               default: 0
@@ -2606,59 +2476,6 @@ components:
               example: 1
               nullable: true
               description: How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep `n` as `1` to minimize costs.
-            modalities:
-              $ref: "#/components/schemas/ChatCompletionModalities"
-            prediction:
-              nullable: true
-              x-oaiExpandable: true
-              description: >
-                Configuration for a [Predicted
-                Output](/docs/guides/predicted-outputs),
-
-                which can greatly improve response times when large parts of the
-                model
-
-                response are known ahead of time. This is most common when you are
-
-                regenerating a file with only minor changes to most of the content.
-              oneOf:
-                - $ref: "#/components/schemas/PredictionContent"
-            audio:
-              type: object
-              description: >
-                Parameters for audio output. Required when audio output is requested
-                with `modalities: ["audio"]`. [Learn more](/docs/guides/audio).
-              required:
-                - voice
-                - format
-              x-oaiExpandable: true
-              properties:
-                voice:
-                  type: string
-                  enum:
-                    - alloy
-                    - echo
-                    - fable
-                    - onyx
-                    - nova
-                    - shimmer
-                  description: |
-                    Specifies the voice type. Supported voices are `alloy`, `echo`, 
-                    `fable`, `onyx`, `nova`, and `shimmer`.
-                format:
-                  type: string
-                  enum:
-                    - wav
-                    - mp3
-                    - flac
-                    - opus
-                    - pcm16
-                  description: >
-                    Specifies the output audio format. Must be one of `wav`, `mp3`,
-                    `flac`,
-                    `opus`, or `pcm16`. 
-            parallel_tool_calls:
-              $ref: "#/components/schemas/ParallelToolCalls"
             presence_penalty:
               type: number
               default: 0
@@ -2708,8 +2525,6 @@ components:
               type: boolean
               nullable: true
               default: false
-            stream_options:
-              $ref: "#/components/schemas/chatCompletionStreamOptions"
             temperature:
               type: number
               minimum: 0
@@ -2766,31 +2581,9 @@ components:
               items:
                 $ref: "#/components/schemas/chatCompletionFunctions"
             user: *end_user_param_configuration
-            user_security_context: 
-              $ref: "#/components/schemas/user_security_context"
 
           required:
             - messages
-
-    user_security_context:
-      description: |
-        User security context contains several parameters that describe the AI application itself, and the end user that interacts with the AI application. These fields assist your security operations teams to investigate and mitigate security incidents by providing a comprehensive approach to protecting your AI applications. [Learn more](https://aka.ms/TP4AI/Documentation/EndUserContext) about protecting AI applications using Microsoft Defender for Cloud.
-      type: object
-      properties:
-        application_name: 
-          type: string
-          description: The name of the application. Sensitive personal information should not be included in this field.
-        end_user_id:
-          type: string
-          format: uuid
-          description: This identifier is the Microsoft Entra ID (formerly Azure Active Directory) user object ID used to authenticate end-users within the generative AI application. Sensitive personal information should not be included in this field.
-        end_user_tenant_id:
-          type: string
-          format: uuid
-          description: The Microsoft 365 tenant ID the end user belongs to. It's required when the generative AI application is multi tenant.
-        source_ip:
-          type: string
-          description: Captures the original client's IP address, accepting both IPv4 and IPv6 formats.
 
     chatCompletionFunctions:
       type: object
@@ -2825,51 +2618,12 @@ components:
 
     chatCompletionRequestMessage:
       oneOf:
-        - $ref: "#/components/schemas/ChatCompletionRequestDeveloperMessage"
         - $ref: "#/components/schemas/chatCompletionRequestSystemMessage"
         - $ref: "#/components/schemas/chatCompletionRequestUserMessage"
         - $ref: "#/components/schemas/chatCompletionRequestAssistantMessage"
         - $ref: "#/components/schemas/chatCompletionRequestToolMessage"
         - $ref: "#/components/schemas/chatCompletionRequestFunctionMessage"
 
-    ChatCompletionRequestDeveloperMessage:
-      type: object
-      title: Developer message
-      description: >
-        Developer-provided instructions that the model should follow, regardless
-        of
-
-        messages sent by the user. With o1 models and newer, `developer`
-        messages
-
-        replace the previous `system` messages.
-      properties:
-        content:
-          description: The contents of the developer message.
-          oneOf:
-            - type: string
-              description: The contents of the developer message.
-              title: Text content
-            - type: array
-              description: An array of content parts with a defined type. For developer
-                messages, only type `text` is supported.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/chatCompletionRequestDeveloperMessageContentPart"
-              minItems: 1
-        role:
-          type: string
-          enum:
-            - developer
-          description: The role of the messages author, in this case `developer`.
-        name:
-          type: string
-          description: An optional name for the participant. Provides the model
-            information to differentiate between participants of the same role.
-      required:
-        - content
-        - role
-        
     chatCompletionRequestSystemMessage:
       type: object
       title: System message
@@ -3024,10 +2778,6 @@ components:
         - content
         - name
 
-    chatCompletionRequestDeveloperMessageContentPart:
-      oneOf:
-        - $ref: "#/components/schemas/chatCompletionRequestMessageContentPartText"
-
     chatCompletionRequestSystemMessageContentPart:
       oneOf:
         - $ref: "#/components/schemas/chatCompletionRequestMessageContentPartText"
@@ -3036,7 +2786,6 @@ components:
       oneOf:
         - $ref: "#/components/schemas/chatCompletionRequestMessageContentPartText"
         - $ref: "#/components/schemas/chatCompletionRequestMessageContentPartImage"
-        - $ref: "#/components/schemas/chatCompletionRequestMessageContentPartAudio"
 
     chatCompletionRequestAssistantMessageContentPart:
       oneOf:
@@ -3061,38 +2810,6 @@ components:
       required:
         - type
         - text
-
-    chatCompletionRequestMessageContentPartAudio:
-      type: object
-      title: Audio content part
-      description: |
-        Learn about [audio inputs](/docs/guides/audio).
-      properties:
-        type:
-          type: string
-          enum:
-            - input_audio
-          description: The type of the content part. Always `input_audio`.
-        input_audio:
-          type: object
-          properties:
-            data:
-              type: string
-              description: Base64 encoded audio data.
-            format:
-              type: string
-              enum:
-                - wav
-                - mp3
-              description: >
-                The format of the encoded audio data. Currently supports "wav"
-                and "mp3".
-          required:
-            - data
-            - format
-      required:
-        - type
-        - input_audio
 
     chatCompletionRequestMessageContentPartImage:
       type: object
@@ -4427,7 +4144,6 @@ components:
         - logprob
         - bytes
         - top_logprobs
-
     chatCompletionResponseMessage:
       type: object
       description: A chat completion message generated by the model.
@@ -4449,34 +4165,6 @@ components:
             $ref: "#/components/schemas/chatCompletionMessageToolCall"
         function_call:
           $ref: "#/components/schemas/chatCompletionFunctionCall"
-        audio:
-          type: object
-          description: >
-            If the audio output modality is requested, this object contains data about the audio response from the model. [Learn more](/docs/guides/audio).
-          x-oaiExpandable: true
-          required:
-            - id
-            - expires_at
-            - data
-            - transcript
-          properties:
-            id:
-              type: string
-              description: Unique identifier for this audio response.
-            expires_at:
-              type: integer
-              description: >
-                The Unix timestamp (in seconds) for when this audio response
-                will no longer be accessible on the server for use in multi-turn
-                conversations.
-            data:
-              type: string
-              description: |
-                Base64 encoded audio bytes generated by the model, in the format
-                specified in the request.
-            transcript:
-              type: string
-              description: Transcript of the audio generated by the model.
         context:
           $ref: "#/components/schemas/azureChatExtensionsMessageContext"
       required:
@@ -4528,76 +4216,11 @@ components:
         - type
         - function
 
-    ParallelToolCalls:
-      description: Whether to enable parallel function calling during tool use.
-      type: boolean
-      default: true
-
-    PredictionContent:
-      type: object
-      title: Static Content
-      description: >
-        Static predicted output content, such as the content of a text file that
-        is
-
-        being regenerated.
-      required:
-        - type
-        - content
-      properties:
-        type:
-          type: string
-          enum:
-            - content
-          description: |
-            The type of the predicted content you want to provide. This type is
-            currently always `content`.
-        content:
-          x-oaiExpandable: true
-          description: >
-            The content that should be matched when generating a model response.
-
-            If generated tokens would match this content, the entire model
-            response
-
-            can be returned much more quickly.
-          oneOf:
-            - type: string
-              title: Text content
-              description: |
-                The content used for a Predicted Output. This is often the
-                text of a file you are regenerating with minor changes.
-            - type: array
-              description: An array of content parts with a defined type. Supported options
-                differ based on the [model](/docs/models) being used to generate
-                the response. Can contain text inputs.
-              title: Array of content parts
-              items:
-                $ref: "#/components/schemas/chatCompletionRequestMessageContentPartText"
-              minItems: 1
-
     chatCompletionMessageToolCalls:
       type: array
       description: The tool calls generated by the model, such as function calls.
       items:
         $ref: "#/components/schemas/chatCompletionMessageToolCall"
-
-    ChatCompletionModalities:
-      type: array
-      description: >
-        Output types that you would like the model to generate for this request.
-        Most models are capable of generating text, which is the default:
-        `["text"]`
-        The `gpt-4o-audio-preview` model can also be used to [generate
-        audio](/docs/guides/audio). To
-        request that this model generate both text and audio responses, you can
-        use:
-        `["text", "audio"]`
-      items:
-        type: string
-        enum:
-          - text
-          - audio
 
     chatCompletionFunctionCall:
       type: object
@@ -4625,44 +4248,6 @@ components:
         total_tokens:
           type: integer
           description: Total number of tokens used in the request (prompt + completion).
-        prompt_tokens_details:
-          type: object
-          description: Details of the prompt tokens.
-          properties:
-            audio_tokens:
-              type: integer
-              description: Audio input tokens present in the prompt.
-            cached_tokens:
-              type: integer
-              description: Cached tokens present in the prompt.
-        completion_tokens_details:
-          type: object
-          description: Breakdown of tokens used in a completion.
-          properties:
-            accepted_prediction_tokens:
-              type: integer
-              description: |
-                When using Predicted Outputs, the number of tokens in the
-                prediction that appeared in the completion.
-            audio_tokens:
-              type: integer
-              description: Audio input tokens generated by the model.
-            reasoning_tokens:
-              type: integer
-              description: Tokens generated by the model for reasoning.
-            rejected_prediction_tokens:
-              type: integer
-              description: >
-                When using Predicted Outputs, the number of tokens in the
-
-                prediction that did not appear in the completion. However, like
-
-                reasoning tokens, these tokens are still counted in the total
-
-                completion tokens for purposes of billing, output, and context
-                window
-
-                limits.
       required:
         - prompt_tokens
         - completion_tokens
@@ -4710,8 +4295,7 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `text`"
-          enum: 
-            - text
+          enum: ["text"]
       required:
         - type
 
@@ -4721,8 +4305,7 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `json_object`"
-          enum:
-            - json_object
+          enum: ["json_object"]
       required:
         - type
 
@@ -4737,8 +4320,7 @@ components:
         type:
           type: string
           description: "The type of response format being defined: `json_schema`"
-          enum:
-            - json_schema
+          enum: ["json_schema"]
         json_schema:
           type: object
           properties:
@@ -4756,7 +4338,7 @@ components:
               default: false
               description: Whether to enable strict schema adherence when generating the output. If set to true, the model will always follow the exact schema defined in the `schema` field. Only a subset of JSON Schema is supported when `strict` is `true`.
           required:
-            - schema
+            - type
             - name
       required:
         - type
@@ -5188,41 +4770,23 @@ components:
 
     assistantsApiResponseFormatOption:
       description: |
-        Specifies the format that the model must output. Compatible with
-        GPT-4o, GPT-4 Turbo, 
-        and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+        Specifies the format that the model must output. Compatible with GPT-4 Turbo and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
-        Setting to `{ "type": "json_schema", "json_schema": {...} }`
-        enables Structured Outputs which ensures the model 
-        will match your supplied JSON schema. 
-        Learn more in the [Structured Outputs guide](/docs/guides/structured-outputs).
+        Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the message the model generates is valid JSON.
 
-        Setting to `{ "type": "json_object" }` enables 
-        JSON mode, which ensures the message the model generates is valid JSON.
-
-        **Important:** when using JSON mode, 
-        you **must** also instruct the model to produce JSON yourself 
-        via a system or user message. Without this, the model may 
-        generate an unending stream of whitespace until the generation 
-        reaches the token limit, resulting in a long-running and 
-        seemingly "stuck" request. Also note that the message content 
-        may be partially cut off if `finish_reason="length"`, which indicates 
-        the generation exceeded `max_tokens` or the conversation exceeded 
-        the max context length.
+        **Important:** when using JSON mode, you **must** also instruct the model to produce JSON yourself via a system or user message. Without this, the model may generate an unending stream of whitespace until the generation reaches the token limit, resulting in a long-running and seemingly "stuck" request. Also note that the message content may be partially cut off if `finish_reason="length"`, which indicates the generation exceeded `max_tokens` or the conversation exceeded the max context length.
       oneOf:
         - type: string
           description: >
             `auto` is the default value
-          enum:
-            - auto
+          enum: [none, auto]
           x-ms-enum:
             name: AssistantsApiResponseFormatOption
             modelAsString: true
             values:
+              - value: none
               - value: auto
-        - $ref: "#/components/schemas/ResponseFormatText"
-        - $ref: "#/components/schemas/ResponseFormatJsonObject"
-        - $ref: "#/components/schemas/ResponseFormatJsonSchema"
+        - $ref: "#/components/schemas/assistantsApiResponseFormat"
 
     assistantsApiResponseFormat:
       type: object
@@ -5706,7 +5270,12 @@ components:
 
 
                 Note that the file search tool may output fewer than `max_num_results`
-                results.
+                results. See the [file search tool
+                documentation](/docs/assistants/tools/file-search/number-of-chunks-returned)
+                for more information.
+      required:
+        - type
+
     assistantToolsFileSearchTypeOnly:
       type: object
       title: FileSearch tool
@@ -6018,8 +5587,6 @@ components:
         tool_choice:
           $ref: "#/components/schemas/assistantsApiToolChoiceOption"
           nullable: true
-        parallel_tool_calls:
-          $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           $ref: "#/components/schemas/assistantsApiResponseFormatOption"
           nullable: true
@@ -6127,8 +5694,6 @@ components:
         tool_choice:
           $ref: "#/components/schemas/assistantsApiToolChoiceOption"
           nullable: true
-        parallel_tool_calls:
-          $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           $ref: "#/components/schemas/assistantsApiResponseFormatOption"
           nullable: true
@@ -6328,8 +5893,6 @@ components:
         tool_choice:
           $ref: "#/components/schemas/assistantsApiToolChoiceOption"
           nullable: true
-        parallel_tool_calls:
-          $ref: "#/components/schemas/ParallelToolCalls"
         response_format:
           $ref: "#/components/schemas/assistantsApiResponseFormatOption"
           nullable: true
@@ -7658,51 +7221,10 @@ components:
         file_search:
           type: object
           description: For now, this is always going to be an empty object.
-          properties:
-            results:
-              type: array
-              description: The results of the file search.
-              items:
-                $ref: "#/components/schemas/runStepDetailsToolCallsFileSearchResultObject"
       required:
         - id
         - type
         - file_search
-    
-    runStepDetailsToolCallsFileSearchResultObject:
-      title: File search tool call result
-      type: object
-      description: A result instance of the file search.
-      x-oaiTypeLabel: map
-      properties:
-        file_id:
-          type: string
-          description: The ID of the file that result was found in.
-        file_name:
-          type: string
-          description: The name of the file that result was found in.
-        score:
-          type: number
-          description: The score of the result. All values must be a floating point number between 0 and 1.
-          minimum: 0
-          maximum: 1
-        content:
-          type: array
-          description: The content of the result that was found. The content is only included if requested via the include query parameter.
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-                description: The type of the content.
-                enum: ["text"]
-              text:
-                type: string
-                description: The text content of the file.
-      required:
-        - file_id
-        - file_name
-        - score
 
     runStepDeltaStepDetailsToolCallsFileSearchObject:
       title: File search tool call
@@ -8050,20 +7572,22 @@ components:
           properties:
             code:
               type: string
-              description: One of `server_error` or `invalid_file` or `unsupported_file`.
+              description: One of `server_error` or `rate_limit_exceeded`.
               enum:
                 [
-                  "server_error",
-                  "unsupported_file",
-                  "invalid_file"
+                  "internal_error",
+                  "file_not_found",
+                  "parsing_error",
+                  "unhandled_mime_type",
                 ]
               x-ms-enum:
                 name: VectorStoreFileObjectLastErrorCode
                 modelAsString: true
                 values:
-                  - value: server_error
-                  - value: unsupported_file
-                  - value: invalid_file
+                  - value: internal_error
+                  - value: file_not_found
+                  - value: parsing_error
+                  - value: unhandled_mime_type
             message:
               type: string
               description: A human-readable description of the error.
@@ -8351,7 +7875,8 @@ components:
         `thread.message.completed` event.
 
         We may add additional events over time, so we recommend handling unknown events gracefully
-        in your code.
+        in your code. See the [Assistants API quickstart](/docs/assistants/overview) to learn how to
+        integrate the Assistants API with streaming.
       oneOf:
         - $ref: "#/components/schemas/threadStreamEvent"
         - $ref: "#/components/schemas/runStreamEvent"
