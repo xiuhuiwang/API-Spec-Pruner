@@ -1,6 +1,8 @@
 import yaml
+import openapi_circular_resolver
+import os
 
-
+# Core component handling functions
 def collect_referenced_components(api_spec, extracted_paths):
     """
     Collect all components that are referenced in the extracted paths.
@@ -64,7 +66,7 @@ def collect_referenced_components(api_spec, extracted_paths):
 
     return referenced_components
 
-
+# Path extraction functions
 def extract_paths(api_spec, required_paths_methods):
     """
     Extract only the specified paths and methods from the API spec.
@@ -91,64 +93,63 @@ def extract_paths(api_spec, required_paths_methods):
                 
     return extracted_paths
 
-def remove_component_properties(referenced_components, properties_to_remove):
+# Cleanup functions
+def remove_required_fields_by_path(api_spec, field_paths):
     """
-    Remove specified properties from components.
+    Remove specific fields from the OpenAPI spec, given a list of hierarchical paths.
     
     Args:
-        referenced_components (dict): The referenced components
-        properties_to_remove (dict): Mapping of component names to lists of properties to remove
+        api_spec (dict): The OpenAPI specification as a dictionary.
+        field_paths (list of str): List of paths in the format
+            'components-schemas-<SchemaName>-required'
+            or 'components-schemas-<SchemaName>-required-<field_name>'
+            describing the full path to the field to remove.
     """
-    for component_name, properties in properties_to_remove.items():
-        # Look for the component in different component types (schemas, parameters, etc.)
-        for component_type, components in referenced_components.items():
-            if component_name in components:
-                component = components[component_name]
-                # check if the property is in the component itself
-                for prop in properties:
-                    if prop in component:
-                        del component[prop]
-                # Check if the component has properties
-                if 'properties' in component:
-                    for prop in properties:
-                        if prop in component['properties']:
-                            del component['properties'][prop]
-                # For components with allOf, check each item
-                elif 'allOf' in component:
-                    for item in component['allOf']:
-                        if isinstance(item, dict) and 'properties' in item:
-                            for prop in properties:
-                                if prop in item['properties']:
-                                    del item['properties'][prop]
+    for path in field_paths:
+        parts = path.split('-')
+        try:
+            # Navigate to the parent object
+            obj = api_spec
+            current_path = []
             
-def update_dates_format(obj):
-    """
-    Recursively traverse through the API spec and update dates in format yyyy-mm-dd to "yyyy-mm-dd".
-    
-    Args:
-        obj: The object to traverse (dict, list, or scalar value)
-        
-    Returns:
-        The updated object with quoted dates
-    """
-    import re
-    
-    date_pattern = re.compile(r'^(\d{4}-\d{2}-\d{2})$')
-    
-    if isinstance(obj, dict):
-        for key, value in obj.items():
-            obj[key] = update_dates_format(value)
-        return obj
-    elif isinstance(obj, list):
-        return [update_dates_format(item) for item in obj]
-    elif isinstance(obj, str):
-        # Check if the string matches the yyyy-mm-dd pattern
-        if date_pattern.match(obj):
-            return f'"{obj}"'
-        return obj
-    else:
-        return obj
-    
+            for part in parts[:-1]:
+                current_path.append(part)
+                if isinstance(obj, dict) and part in obj:
+                    obj = obj[part]
+                else:
+                    obj = None
+                    break
+            
+            if obj is None:
+                continue
+                
+            last_part = parts[-1]
+            
+            # Check if we're removing a specific field from the required array
+            if len(parts) >= 2 and parts[-2] == "required":
+                # We're removing a specific field from a required array
+                required_key = parts[-2]
+                field_to_remove = parts[-1]
+                
+                if isinstance(obj, list):
+                    # If obj is already the required array
+                    if field_to_remove in obj:
+                        obj.remove(field_to_remove)
+                elif isinstance(obj, dict) and required_key in obj and isinstance(obj[required_key], list):
+                    # If obj is the parent dictionary containing the required array
+                    if field_to_remove in obj[required_key]:
+                        obj[required_key].remove(field_to_remove)
+            
+            # Check if we're removing the entire required field
+            elif last_part == "required":
+                # We're removing the entire required field
+                if isinstance(obj, dict):
+                    obj.pop("required", None)
+                    
+        except Exception as e:
+            # Skip malformed paths or if structure doesn't match
+            continue
+
 def remove_x_ms_examples(obj):
     """
     Recursively traverse through the API spec and remove all x-ms-examples fields.
@@ -173,6 +174,7 @@ def remove_x_ms_examples(obj):
     else:
         return obj
 
+# Spec creation function
 def create_new_spec(api_spec, extracted_paths, referenced_components):
     """
     Create a new API specification with only the extracted paths, and components.
@@ -199,13 +201,10 @@ def create_new_spec(api_spec, extracted_paths, referenced_components):
     
     # Remove all x-ms-examples fields
     new_api_spec = remove_x_ms_examples(new_api_spec)
-
-    # Update dates format in the new API spec from yyyy-mm-dd to "yyyy-mm-dd"
-    new_api_spec = update_dates_format(new_api_spec)
         
     return new_api_spec
 
-
+# Single-spec processing function
 def shorten_api_spec(spec_filename, required_paths_methods, output_filename, properties_to_remove=None):
     """
     Create a shortened version of an API specification with only the specified paths, and methods.
@@ -237,51 +236,146 @@ def shorten_api_spec(spec_filename, required_paths_methods, output_filename, pro
     with open(output_filename, 'w') as file:
         yaml.dump(new_api_spec, file, default_flow_style=False, sort_keys=False)
 
+# Multi-spec processing function
+def process_combined_specs(input_filenames, required_paths, invalid_required_fields, output_filename):
+    """
+    Process multiple API specs and combine them into a single output spec.
+    
+    Args:
+        input_filenames (list): List of input spec filenames
+        required_paths (dict): Mapping of paths to required HTTP methods
+        invalid_required_fields (list): List of field paths to remove from the combined spec
+    
+    Returns:
+        str: Path to the final output file
+    """
+    # Load all input specs
+    specs = []
+    for filename in input_filenames:
+        with open(filename, "r") as f:
+            spec = yaml.safe_load(f)
+            specs.append({"filename": filename, "spec": spec})
+
+    # Prepare combined output
+    combined_paths = {}
+    combined_components = {}
+
+    # Use the first spec as the "base" for openapi/info/servers
+    base_spec = specs[0]["spec"] if specs else None
+
+    # For each required path, find which spec contains it, and which methods are available
+    for path, methods in required_paths.items():
+        found = False
+        for s in specs:
+            spec_paths = s["spec"].get("paths", {})
+            if path in spec_paths:
+                # Only include methods that actually exist in this spec for this path
+                available_methods = [m for m in methods if m.lower() in spec_paths[path]]
+                if available_methods:
+                    # Extract the path/methods
+                    extracted = extract_paths(s["spec"], {path: available_methods})
+                    combined_paths.update(extracted)
+                    # Collect referenced components for this path
+                    referenced = collect_referenced_components(s["spec"], extracted)
+                    # Merge referenced components into combined_components
+                    for ctype, cdict in referenced.items():
+                        if ctype not in combined_components:
+                            combined_components[ctype] = {}
+                        combined_components[ctype].update(cdict)
+                    found = True
+                    break  # Stop at the first spec that contains this path
+        if not found:
+            print(f"Warning: Path '{path}' not found in any input spec.")
+
+    # Compose the combined spec
+    if base_spec is not None:
+        combined_api_spec = {
+            "openapi": base_spec["openapi"],
+            "info": base_spec["info"],
+            "servers": base_spec["servers"],
+            "paths": combined_paths
+        }
+        if combined_components:
+            combined_api_spec["components"] = combined_components
+        
+        # Remove all x-ms-examples fields
+        combined_api_spec = remove_x_ms_examples(combined_api_spec)
+        
+        # Remove invalid required fields
+        remove_required_fields_by_path(combined_api_spec, invalid_required_fields)
+
+        # Write to temporary output file
+        temp_filename = "temp_combined_apis.yaml"
+        with open(temp_filename, "w") as f:
+            yaml.dump(combined_api_spec, f, default_flow_style=False, sort_keys=False)
+        
+        # Resolve circular references
+        circular_report_filename = "azure_openai-circular_report.json"
+        openapi_circular_resolver.resolve_openapi_circular_refs(
+            temp_filename, output_filename, circular_report_filename
+        )
+        
+        # Clean up temporary file
+        if os.path.exists(temp_filename):
+            os.remove(temp_filename)
+            
+        print(f"Combined simplified spec written to: {output_filename}")
+        return output_filename
+    else:
+        print("No input specs provided.")
+        return None
 
 def main():
-    """Entry point for the script."""
-    # input_spec_filename = 'authoring_stable_3_0.yaml'
-    # output_spec_filename = 'authoring_stable_3_0_simplified.yaml'
+    """
+    Entry point for the script.
+    Processes multiple API specs to create a combined, simplified version.
+    """
+    # Input specifications
+    input_spec_filenames = [
+        "authoring_stable_3_0.yaml",
+        "inference_preview_2024_08_01.yaml",
+        "inference_stable_2024_02_01.yaml"
+    ]
 
-    # input_spec_filename = 'inference_2024_08_01.yaml'
-    # output_spec_filename = 'inference_2024_08_01_simplified.yaml'
-
-    input_spec_filename = 'inference_stable_2024_02_01.yaml'
-    output_spec_filename = 'inference_stable_2024_02_01_simplified.yaml'
-    
-    # Define the paths and methods to include in the shortened specification
+    # Define the paths and methods to include in the combined specification
     required_paths = {
-        # "/deployments": ["get"],
-        # "/models": ["get"],
-        # "/files": ["get", "post"],
-        # "/files/{file-id}": ["delete"],
-        #------------------------------
-        # "/assistants": ["get"],
-        # "/threads": ["post"],
-        # "/threads/{thread_id}/messages": ["get", "post"],
-        # "/threads/runs": ["post"],
-        # "/threads/{thread_id}/runs": ["get", "post"],
-        # "/threads/{thread_id}/runs/{run_id}": ["get"],
-        # "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs": ["post"],
-        # "/vector_stores": ["get", "post"],
-        # "/vector_stores/{vector_store_id}/files": ["get", "post"],
-        # "/vector_stores/{vector_store_id}/files/{file_id}": ["delete"]
-        #------------------------------
+        "/deployments": ["get"],
+        "/models": ["get"],
+        "/files": ["get", "post"],
+        "/files/{file-id}": ["delete"],
+        "/assistants": ["get"],
+        "/threads": ["post"],
+        "/threads/{thread_id}/messages": ["get", "post"],
+        "/threads/runs": ["post"],
+        "/threads/{thread_id}/runs": ["get", "post"],
+        "/threads/{thread_id}/runs/{run_id}": ["get"],
+        "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs": ["post"],
+        "/vector_stores": ["get", "post"],
+        "/vector_stores/{vector_store_id}/files": ["get", "post"],
+        "/vector_stores/{vector_store_id}/files/{file_id}": ["delete"],
         "/deployments/{deployment-id}/chat/completions": ["post"],
         "/deployments/{deployment-id}/embeddings": ["post"]
     }
-    
-    
-    # # Define properties to remove from specific components
-    # properties_to_remove = {
-    #     # the seed contains a large integer that leads to error in MongoDB
-    #     "CreateChatCompletionRequest": ["seed"],
-    #     # these two properties are not legal in openapi 3.0
-    #     "VectorStoreFileAttributes": ["additionalProperties", "propertyNames"]
-    # }
-    
-    shorten_api_spec(input_spec_filename, required_paths, output_spec_filename)
 
+    # Fields to remove from the combined spec
+    invalid_required_fields = [
+        "components-schemas-createThreadAndRunRequest-required-thread_id",
+        "components-schemas-createRunRequest-required-thread_id",
+        "components-schemas-vectorStoreObject-required-bytes",
+        "components-schemas-contentFilterDetectedWithCitationResult-required",
+        "components-schemas-contentFilterIdResult-required",
+        "components-schemas-contentFilterSeverityResult-required-filtered",
+        "components-schemas-retrievedDocument-required",
+        "components-schemas-contentFilterDetailedResults-required",
+        "components-schemas-contentFilterDetectedResult-required",
+        "components-schemas-contentFilterSeverityResult-required"
+    ]
+
+    # Name of the output file
+    output_filename = "combined_azure_apis_simplified.yaml"
+
+    # Process and combine all specs
+    process_combined_specs(input_spec_filenames, required_paths, invalid_required_fields, output_filename)
 
 if __name__ == "__main__":
     main()
