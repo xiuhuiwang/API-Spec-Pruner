@@ -1,0 +1,40 @@
+{
+  "detected_cycles": [
+    {
+      "cycle": "Error -> Error"
+    },
+    {
+      "cycle": "InnerError -> InnerError"
+    }
+  ],
+  "breaking_points": [
+    {
+      "cycle": "Error -> Error",
+      "broken_edge": "Error -> Error",
+      "reference_count": 1,
+      "locations": [
+        "properties/details/items"
+      ]
+    },
+    {
+      "cycle": "InnerError -> InnerError",
+      "broken_edge": "InnerError -> InnerError",
+      "reference_count": 1,
+      "locations": [
+        "properties/innererror"
+      ]
+    }
+  ],
+  "removed_references": [
+    {
+      "source_schema": "Error",
+      "target_schema": "Error",
+      "path": "properties/details/items"
+    },
+    {
+      "source_schema": "InnerError",
+      "target_schema": "InnerError",
+      "path": "properties/innererror"
+    }
+  ]
+}
